@@ -5,10 +5,8 @@ namespace inmobiliaria_grupo_9.Models
     public class Inquilino
     {
         [Key]
+        [Display(Name = "Código")]
         public int IdInquilino { get; set; }
-
-        [Required]
-        public string Dni { get; set; } = "";
 
         [Required]
         public string Nombre { get; set; } = "";
@@ -16,9 +14,12 @@ namespace inmobiliaria_grupo_9.Models
         [Required]
         public string Apellido { get; set; } = "";
 
+        [Required]
+        public string Dni { get; set; } = "";
+
         public string? Telefono { get; set; }
 
-        [EmailAddress]
-        public string? Email { get; set; }
+        [Required, EmailAddress]
+        public string Email { get; set; } = "";
     }
 }
