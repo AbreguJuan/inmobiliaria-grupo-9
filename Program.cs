@@ -7,6 +7,7 @@ builder.Services.AddControllersWithViews();
 
 // Registro del repositorio
 builder.Services.AddTransient<IRepositorioPropietario, RepositorioPropietario>();
+builder.Services.AddTransient<IRepositorioInquilino, RepositorioInquilino>();
 
 var app = builder.Build();
 
