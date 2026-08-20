@@ -1,7 +1,12 @@
+using inmobiliaria_grupo_9.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Registro del repositorio
+builder.Services.AddTransient<IRepositorioPropietario, RepositorioPropietario>();
 
 var app = builder.Build();
 
