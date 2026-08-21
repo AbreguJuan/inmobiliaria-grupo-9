@@ -6,8 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // Registro del repositorio
-builder.Services.AddTransient<IRepositorioPropietario, RepositorioPropietario>();
-builder.Services.AddTransient<IRepositorioInquilino, RepositorioInquilino>();
+builder.Services.AddScoped<IRepositorioPropietario, RepositorioPropietario>();
+builder.Services.AddScoped<IRepositorioInquilino, RepositorioInquilino>();
 
 var app = builder.Build();
 

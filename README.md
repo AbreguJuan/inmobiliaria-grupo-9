@@ -4,6 +4,7 @@
 
 ```bash
 dotnet new mvc
+dotnet add package MySqlConnector
 ```
 
 ### Uso

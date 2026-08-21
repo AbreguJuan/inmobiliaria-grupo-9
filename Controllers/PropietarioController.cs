@@ -30,6 +30,17 @@ namespace inmobiliaria_grupo_9.Controllers
             }
         }
 
+        // GET: Propietario/Details/5
+        public IActionResult Details(int id)
+        {
+            var propietario = _repositorioPropietario.ObtenerPorId(id);
+            if (propietario == null)
+            {
+                return NotFound();
+            }
+            return View(propietario);
+        }
+
         // GET: Propietario/Create
         public IActionResult Create()
         {
