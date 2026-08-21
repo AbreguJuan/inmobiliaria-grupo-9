@@ -6,7 +6,7 @@
 
 ## 👥 Integrantes del Grupo
 
-* **Juan Demetrio Abregu** - *abregu058@gmail.com* - [@usuario_github](https://github.com/usuario/AbreguJuan) - Discord: `Nedisane`
+* **Juan Demetrio Abregu** - *abregu058@gmail.com* - [@usuario_github](https://github.com/AbreguJuan) - Discord: `Nedisane`
 * **Luca Rodrigaño** - *Lucarodrigano@gmail.com* - [@usuario_github](https://github.com/Lucarod96) - Discord: `lucarod96`
 * **Alfaro Milagros Gilda** - *milagrosalfaro225@gmail.com* - [@usuario_github](https://github.com/Milagros2109) - Discord: `Alfaro_225`
 
@@ -29,10 +29,8 @@ A continuación se presenta el esquema del modelo de datos correspondiente a la 
 
 ![Diagrama del Proyecto](./docs/der.png)
 
-> **Nota:** Subí la imagen del diagrama a una carpeta `/docs` en el repositorio y enlazala como se muestra arriba.
-
 <details>
-<summary>Ver diagrama en código Mermaid (Opcional)</summary>
+<summary>Ver diagrama en código Mermaid</summary>
 
 ```mermaid
 erDiagram
@@ -119,7 +117,7 @@ erDiagram
 
 * [.NET SDK](https://dotnet.microsoft.com/download) (versión 8 o superior)
 * [MySQL Server](https://dev.mysql.com/downloads/mysql/) instalado y corriendo
-* (Opcional) [MySQL Workbench](https://dev.mysql.com/downloads/workbench/) para gestionar la base de datos
+* [MySQL Workbench](https://dev.mysql.com/downloads/workbench/) para gestionar la base de datos
 
 ### Pasos
 
