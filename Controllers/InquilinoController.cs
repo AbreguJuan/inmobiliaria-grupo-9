@@ -30,6 +30,19 @@ namespace inmobiliaria_grupo_9.Controllers
             }
         }
 
+        // GET: Inquilino/Details/5
+        public IActionResult Details(int id)
+        {
+            var inquilino = _repositorioInquilino.ObtenerPorId(id);
+
+            if (inquilino == null)
+            {
+                return NotFound();
+            }
+
+            return View(inquilino);
+        }
+
         // GET: Inquilino/Create
         public IActionResult Create()
         {

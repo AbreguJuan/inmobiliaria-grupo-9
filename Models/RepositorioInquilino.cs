@@ -56,7 +56,7 @@ namespace inmobiliaria_grupo_9.Models
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = @"DELETE FROM inquilino
-                               WHERE idinquiilino = @id";
+                            WHERE ID_Inquilino = @id";
 
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
@@ -89,7 +89,7 @@ namespace inmobiliaria_grupo_9.Models
                         Dni = @dni,
                         Telefono = @telefono,
                         Email = @email
-                    WHERE idinquiilino = @id";
+                    WHERE ID_Inquilino = @id";
 
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
@@ -125,14 +125,14 @@ namespace inmobiliaria_grupo_9.Models
             {
                 string sql = @$"
                     SELECT
-                        idinquiilino AS IdInquilino,
+                        ID_Inquilino AS IdInquilino,
                         Nombre,
                         Apellido,
                         Dni,
                         Telefono,
                         Email
                     FROM inquilino
-                    ORDER BY idinquiilino
+                    ORDER BY ID_Inquilino
                     LIMIT {tamPagina}
                     OFFSET {(paginaNro - 1) * tamPagina}";
 
@@ -189,8 +189,8 @@ namespace inmobiliaria_grupo_9.Models
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                string sql = @"SELECT COUNT(idinquiilino)
-                               FROM inquilino";
+                string sql = @"SELECT COUNT(ID_Inquilino)
+                               FROM ID_Inquilino";
 
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
@@ -221,14 +221,14 @@ namespace inmobiliaria_grupo_9.Models
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = @"SELECT
-                        idinquiilino AS IdInquilino,
+                        ID_Inquilino  AS IdInquilino,
                         Nombre,
                         Apellido,
                         Dni,
                         Telefono,
                         Email
                     FROM inquilino
-                    WHERE idinquiilino = @id";
+                    WHERE ID_Inquilino  = @id";
 
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {

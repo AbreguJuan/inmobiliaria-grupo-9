@@ -10,6 +10,8 @@ dotnet add package MySqlConnector
 ### Uso
 
 ```bash
+dotnet clean
+dotnet build
 dotnet run
 Ctrl+Clic http//localhost:xxxx
 ```
