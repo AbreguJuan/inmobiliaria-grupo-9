@@ -1,0 +1,27 @@
+@model inmobiliaria_grupo_9.Models.Reserva
+
+@{
+    ViewData["Title"] = "Eliminar Reserva";
+}
+
+<h1>¿Eliminar esta reserva?</h1>
+
+<dl class="row">
+    <dt class="col-sm-2">Inquilino (ID)</dt>
+    <dd class="col-sm-10">@Model.IdInquilino</dd>
+
+    <dt class="col-sm-2">Inmueble (ID)</dt>
+    <dd class="col-sm-10">@Model.IdInmueble</dd>
+
+    <dt class="col-sm-2">Desde</dt>
+    <dd class="col-sm-10">@Model.Desde.ToShortDateString()</dd>
+
+    <dt class="col-sm-2">Hasta</dt>
+    <dd class="col-sm-10">@Model.Hasta.ToShortDateString()</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="IdReserva" />
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
