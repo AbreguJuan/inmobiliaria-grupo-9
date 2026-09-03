@@ -1,4 +1,5 @@
 using System.Data;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 
@@ -15,7 +16,7 @@ namespace inmobiliaria_grupo_9.Models
             int res = -1;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"INSERT INTO inmueble
+                string sql = @"INSERT INTO Inmueble 
                     (Tipo, Provincia, Localidad, Direccion, PrecioXDia, Metros_Cuadrados, Nro_Ambientes, Nro_Banios, ID_Propietario, Habilitado)
                     VALUES (@tipo, @provincia, @localidad, @direccion, @precio, @metros, @ambientes, @banios, @idPropietario, @habilitado);
                     SELECT LAST_INSERT_ID();";
@@ -46,7 +47,7 @@ namespace inmobiliaria_grupo_9.Models
             int res = -1;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = "DELETE FROM inmueble WHERE ID_Inmueble = @id";
+                string sql = "DELETE FROM Inmueble WHERE ID_Inmueble = @id";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);
@@ -63,7 +64,7 @@ namespace inmobiliaria_grupo_9.Models
             int res = -1;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"UPDATE inmueble SET
+                string sql = @"UPDATE Inmueble SET
                     Tipo=@tipo, Provincia=@provincia, Localidad=@localidad, Direccion=@direccion,
                     PrecioXDia=@precio, Metros_Cuadrados=@metros, Nro_Ambientes=@ambientes,
                     Nro_Banios=@banios, ID_Propietario=@idPropietario, Habilitado=@habilitado
@@ -94,11 +95,14 @@ namespace inmobiliaria_grupo_9.Models
             var res = new List<Inmueble>();
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @$"SELECT ID_Inmueble AS IdInmueble, Tipo, Provincia, Localidad, Direccion,
-                        PrecioXDia, Metros_Cuadrados AS MetrosCuadrados, Nro_Ambientes AS NroAmbientes,
-                        Nro_Banios AS NroBanios, ID_Propietario AS IdPropietario, Habilitado
-                    FROM inmueble
-                    ORDER BY ID_Inmueble
+                string sql = @$"
+                    SELECT i.ID_Inmueble AS IdInmueble, i.Tipo, i.Provincia, i.Localidad, i.Direccion,
+                           i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
+                           i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado,
+                           p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario
+                    FROM Inmueble i
+                    INNER JOIN Propietario p ON i.ID_Propietario = p.ID_Propietario
+                    ORDER BY i.ID_Inmueble
                     LIMIT {tamPagina} OFFSET {(paginaNro - 1) * tamPagina}";
                 using (var command = new MySqlCommand(sql, connection))
                 {
@@ -119,6 +123,12 @@ namespace inmobiliaria_grupo_9.Models
                             NroBanios = reader.GetInt32("NroBanios"),
                             IdPropietario = reader.GetInt32("IdPropietario"),
                             Habilitado = reader.GetBoolean("Habilitado"),
+                            Propietario = new Propietario
+                            {
+                                IdPropietario = reader.GetInt32("IdPropietario"),
+                                Nombre = reader.GetString("NombrePropietario"),
+                                Apellido = reader.GetString("ApellidoPropietario")
+                            }
                         });
                     }
                     connection.Close();
@@ -132,7 +142,7 @@ namespace inmobiliaria_grupo_9.Models
             int res = 0;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = "SELECT COUNT(ID_Inmueble) FROM inmueble";
+                string sql = "SELECT COUNT(ID_Inmueble) FROM Inmueble";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     connection.Open();
@@ -148,10 +158,14 @@ namespace inmobiliaria_grupo_9.Models
             Inmueble? i = null;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"SELECT ID_Inmueble AS IdInmueble, Tipo, Provincia, Localidad, Direccion,
-                        PrecioXDia, Metros_Cuadrados AS MetrosCuadrados, Nro_Ambientes AS NroAmbientes,
-                        Nro_Banios AS NroBanios, ID_Propietario AS IdPropietario, Habilitado
-                    FROM inmueble WHERE ID_Inmueble=@id";
+                string sql = @"
+                    SELECT i.ID_Inmueble AS IdInmueble, i.Tipo, i.Provincia, i.Localidad, i.Direccion,
+                           i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
+                           i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado,
+                           p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario
+                    FROM Inmueble i
+                    INNER JOIN Propietario p ON i.ID_Propietario = p.ID_Propietario 
+                    WHERE i.ID_Inmueble=@id";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);
@@ -172,12 +186,65 @@ namespace inmobiliaria_grupo_9.Models
                             NroBanios = reader.GetInt32("NroBanios"),
                             IdPropietario = reader.GetInt32("IdPropietario"),
                             Habilitado = reader.GetBoolean("Habilitado"),
+                            Propietario = new Propietario
+                            {
+                                IdPropietario = reader.GetInt32("IdPropietario"),
+                                Nombre = reader.GetString("NombrePropietario"),
+                                Apellido = reader.GetString("ApellidoPropietario")
+                            }
                         };
                     }
                     connection.Close();
                 }
             }
             return i;
+        }
+
+        public IList<Inmueble> BuscarPorPropietario(int idPropietario)
+        {
+            var res = new List<Inmueble>();
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"
+                    SELECT i.ID_Inmueble AS IdInmueble, i.Tipo, i.Provincia, i.Localidad, i.Direccion,
+                        i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
+                        i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado,
+                        p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario
+                    FROM Inmueble i
+                    INNER JOIN Propietario p ON i.ID_Propietario = p.ID_Propietario 
+                    WHERE i.ID_Propietario=@idPropietario";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@idPropietario", idPropietario);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        res.Add(new Inmueble
+                        {
+                            IdInmueble = reader.GetInt32("IdInmueble"),
+                            Tipo = reader.GetString("Tipo"),
+                            Provincia = reader.GetString("Provincia"),
+                            Localidad = reader.GetString("Localidad"),
+                            Direccion = reader.GetString("Direccion"),
+                            PrecioXDia = reader.GetDecimal("PrecioXDia"),
+                            MetrosCuadrados = reader.GetDecimal("MetrosCuadrados"),
+                            NroAmbientes = reader.GetInt32("NroAmbientes"),
+                            NroBanios = reader.GetInt32("NroBanios"),
+                            IdPropietario = reader.GetInt32("IdPropietario"),
+                            Habilitado = reader.GetBoolean("Habilitado"),
+                            Propietario = new Propietario
+                            {
+                                IdPropietario = reader.GetInt32("IdPropietario"),
+                                Nombre = reader.GetString("NombrePropietario"),
+                                Apellido = reader.GetString("ApellidoPropietario")
+                            }
+                        });
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
         }
     }
 }
