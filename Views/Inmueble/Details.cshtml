@@ -1,0 +1,104 @@
+@model inmobiliaria_grupo_9.Models.Inmueble
+
+@{
+    ViewData["Title"] = "Detalle del Inmueble";
+}
+
+<h1>Detalle del Inmueble</h1>
+
+<hr />
+
+<dl class="row">
+
+    <dt class="col-sm-3">
+        Código
+    </dt>
+    <dd class="col-sm-9">
+        @Model.IdInmueble
+    </dd>
+
+    <dt class="col-sm-3">
+        Tipo
+    </dt>
+    <dd class="col-sm-9">
+        @Model.Tipo
+    </dd>
+
+    <dt class="col-sm-3">
+        Provincia
+    </dt>
+    <dd class="col-sm-9">
+        @Model.Provincia
+    </dd>
+
+    <dt class="col-sm-3">
+        Localidad
+    </dt>
+    <dd class="col-sm-9">
+        @Model.Localidad
+    </dd>
+
+    <dt class="col-sm-3">
+        Dirección
+    </dt>
+    <dd class="col-sm-9">
+        @Model.Direccion
+    </dd>
+
+    <dt class="col-sm-3">
+        Precio por día
+    </dt>
+    <dd class="col-sm-9">
+        $ @Model.PrecioXDia
+    </dd>
+
+    <dt class="col-sm-3">
+        Metros cuadrados
+    </dt>
+    <dd class="col-sm-9">
+        @Model.MetrosCuadrados
+    </dd>
+
+    <dt class="col-sm-3">
+        Número de ambientes
+    </dt>
+    <dd class="col-sm-9">
+        @Model.NroAmbientes
+    </dd>
+
+    <dt class="col-sm-3">
+        Número de baños
+    </dt>
+    <dd class="col-sm-9">
+        @Model.NroBanios
+    </dd>
+
+    <dt class="col-sm-3">
+        Propietario
+    </dt>
+    <dd class="col-sm-9">
+        @if (Model.Propietario != null)
+        {
+            @($"{Model.Propietario.Nombre} {Model.Propietario.Apellido}")
+        }
+    </dd>
+
+    <dt class="col-sm-3">
+        Estado
+    </dt>
+    <dd class="col-sm-9">
+        @(Model.Habilitado ? "Habilitado" : "No habilitado")
+    </dd>
+
+</dl>
+
+<a asp-action="Edit"
+   asp-route-id="@Model.IdInmueble"
+   class="btn btn-warning">
+    Editar
+</a>
+
+<a asp-action="Index"
+   class="btn btn-secondary">
+    Volver
+</a>

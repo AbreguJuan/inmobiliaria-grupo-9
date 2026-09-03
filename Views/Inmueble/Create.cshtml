@@ -1,0 +1,102 @@
+@model inmobiliaria_grupo_9.Models.Inmueble
+
+@{
+    ViewData["Title"] = "Nuevo Inmueble";
+}
+
+<h1>Nuevo Inmueble</h1>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+<form asp-action="Create" method="post">
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Tipo" class="control-label"></label>
+        <input asp-for="Tipo" class="form-control" />
+        <span asp-validation-for="Tipo" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Provincia" class="control-label"></label>
+        <input asp-for="Provincia" class="form-control" />
+        <span asp-validation-for="Provincia" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Localidad" class="control-label"></label>
+        <input asp-for="Localidad" class="form-control" />
+        <span asp-validation-for="Localidad" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Direccion" class="control-label"></label>
+        <input asp-for="Direccion" class="form-control" />
+        <span asp-validation-for="Direccion" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="PrecioXDia" class="control-label"></label>
+        <input asp-for="PrecioXDia" class="form-control" />
+        <span asp-validation-for="PrecioXDia" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="MetrosCuadrados" class="control-label"></label>
+        <input asp-for="MetrosCuadrados" class="form-control" />
+        <span asp-validation-for="MetrosCuadrados" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="NroAmbientes" class="control-label"></label>
+        <input asp-for="NroAmbientes" class="form-control" />
+        <span asp-validation-for="NroAmbientes" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="NroBanios" class="control-label"></label>
+        <input asp-for="NroBanios" class="form-control" />
+        <span asp-validation-for="NroBanios" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="IdPropietario" class="control-label"></label>
+
+        <select asp-for="IdPropietario" class="form-control">
+            <option value="">-- Seleccione un propietario --</option>
+
+            @foreach (var propietario in ViewBag.Propietarios)
+            {
+                <option value="@propietario.IdPropietario">
+                    @propietario.Nombre @propietario.Apellido
+                </option>
+            }
+        </select>
+
+        <span asp-validation-for="IdPropietario" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="Habilitado" class="form-check-input" />
+        <label asp-for="Habilitado" class="form-check-label"></label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Cancelar
+    </a>
+
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

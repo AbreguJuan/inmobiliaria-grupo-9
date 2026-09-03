@@ -1,0 +1,79 @@
+@model IEnumerable<inmobiliaria_grupo_9.Models.Inmueble>
+
+@{
+    ViewData["Title"] = "Inmuebles";
+}
+
+<h1>Inmuebles</h1>
+
+@if (ViewBag.Mensaje != null)
+{
+    <div class="alert alert-success">
+        @ViewBag.Mensaje
+    </div>
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nuevo Inmueble</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Tipo</th>
+            <th>Provincia</th>
+            <th>Localidad</th>
+            <th>Dirección</th>
+            <th>Precio por día</th>
+            <th>Propietario</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.IdInmueble</td>
+                <td>@item.Tipo</td>
+                <td>@item.Provincia</td>
+                <td>@item.Localidad</td>
+                <td>@item.Direccion</td>
+                <td>$ @item.PrecioXDia</td>
+
+                <td>
+                    @if (item.Propietario != null)
+                    {
+                        @($"{item.Propietario.Nombre} {item.Propietario.Apellido}")
+                    }
+                </td>
+
+                <td>
+                    @if (item.Habilitado)
+                    {
+                        <span>Habilitado</span>
+                    }
+                    else
+                    {
+                        <span>No habilitado</span>
+                    }
+                </td>
+
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.IdInmueble">Detalles</a> |
+                    <a asp-action="Edit" asp-route-id="@item.IdInmueble">Editar</a> |
+                    <a asp-action="Delete" asp-route-id="@item.IdInmueble">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
