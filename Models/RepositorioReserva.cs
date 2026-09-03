@@ -273,5 +273,31 @@ namespace inmobiliaria_grupo_9.Models
 
             return r;
         }
+        //Verifica que no se genere una nueva reserva si ya hay otra reserva en esas fechas (a menos que genere el dia que se acabe la reserva. ej: CheckOut 05/05/20XX - CheckIn 05/05/20XX)
+        public bool ExisteSuperposicion(int idInmueble, DateTime desde, DateTime hasta, int idReservaExcluida = 0)
+        {
+            bool existe = false;
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                // Dos rangos de fechas se superponen si: A.Desde < B.Hasta AND A.Hasta > B.Desde
+                string sql = @"SELECT COUNT(*) FROM reserva
+            WHERE ID_Inmueble = @idInmueble
+              AND ID_Reserva <> @idExcluir
+              AND Desde < @hasta
+              AND Hasta > @desde";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@idInmueble", idInmueble);
+                    command.Parameters.AddWithValue("@idExcluir", idReservaExcluida);
+                    command.Parameters.AddWithValue("@desde", desde);
+                    command.Parameters.AddWithValue("@hasta", hasta);
+                    connection.Open();
+                    int cantidad = Convert.ToInt32(command.ExecuteScalar());
+                    existe = cantidad > 0;
+                    connection.Close();
+                }
+            }
+            return existe;
+        }
     }
 }

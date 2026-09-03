@@ -71,6 +71,10 @@ namespace inmobiliaria_grupo_9.Controllers
                 {
                     ModelState.AddModelError("Hasta", "La fecha de fin debe ser posterior a la de inicio");
                 }
+                else if (_repositorioReserva.ExisteSuperposicion(reserva.IdInmueble, reserva.Desde, reserva.Hasta))
+                {
+                    ModelState.AddModelError("", "Ese inmueble ya tiene una reserva en ese rango de fechas");
+                }
 
                 if (ModelState.IsValid)
                 {
@@ -109,6 +113,10 @@ namespace inmobiliaria_grupo_9.Controllers
                 if (reserva.Hasta <= reserva.Desde)
                 {
                     ModelState.AddModelError("Hasta", "La fecha de fin debe ser posterior a la de inicio");
+                }
+                else if (_repositorioReserva.ExisteSuperposicion(reserva.IdInmueble, reserva.Desde, reserva.Hasta, id))
+                {
+                    ModelState.AddModelError("", "Ese inmueble ya tiene una reserva en ese rango de fechas");
                 }
 
                 if (ModelState.IsValid)
