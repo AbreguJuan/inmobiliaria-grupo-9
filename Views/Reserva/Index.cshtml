@@ -14,22 +14,37 @@
     <thead>
         <tr>
             <th>Código</th>
-            <th>Inquilino (ID)</th>
-            <th>Inmueble (ID)</th>
+            <th>Inquilino</th>
+            <th>Inmueble</th>
             <th>Desde</th>
             <th>Hasta</th>
             <th></th>
         </tr>
     </thead>
+
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
                 <td>@item.IdReserva</td>
-                <td>@item.IdInquilino</td>
-                <td>@item.IdInmueble</td>
+
+                <td>
+                    @if (item.Inquilino != null)
+                    {
+                        @($"{item.Inquilino.Nombre} {item.Inquilino.Apellido}")
+                    }
+                </td>
+
+                <td>
+                    @if (item.Inmueble != null)
+                    {
+                        @($"{item.Inmueble.Tipo} - {item.Inmueble.Direccion}")
+                    }
+                </td>
+
                 <td>@item.Desde.ToShortDateString()</td>
                 <td>@item.Hasta.ToShortDateString()</td>
+
                 <td>
                     <a asp-action="Details" asp-route-id="@item.IdReserva">Detalles</a> |
                     <a asp-action="Edit" asp-route-id="@item.IdReserva">Editar</a> |

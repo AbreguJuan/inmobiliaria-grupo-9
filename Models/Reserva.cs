@@ -27,5 +27,10 @@ namespace inmobiliaria_grupo_9.Models
         // Nullable porque Pago todavía no existe cuando se crea la reserva
         [Display(Name = "Pago")]
         public int? IdPago { get; set; }
+
+        // Propiedades de navegación
+        public Inquilino? Inquilino { get; set; }
+
+        public Inmueble? Inmueble { get; set; }
     }
 }
