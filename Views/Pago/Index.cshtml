@@ -1,0 +1,54 @@
+@model IEnumerable<inmobiliaria_grupo_9.Models.Pago>
+
+@{
+    ViewData["Title"] = "Pagos";
+}
+
+<h1>Pagos</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Reserva</th>
+            <th>Concepto</th>
+            <th>Fecha</th>
+            <th>Importe</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.IdPago</td>
+                <td>@item.IdReserva</td>
+                <td>@item.Concepto</td>
+                <td>@item.FechaPago.ToString("dd/MM/yyyy")</td>
+                <td>$ @item.Importe</td>
+                <td>
+                    @if (item.Anulado)
+                    {
+                        <span>Anulado</span>
+                    }
+                    else
+                    {
+                        <span>Activo</span>
+                    }
+                </td>
+                <td>
+    <a asp-action="Edit"
+       asp-route-id="@item.IdPago">Editar</a>
+
+    @if (!item.Anulado)
+    {
+        <span> | </span>
+        <a asp-action="Delete"
+           asp-route-id="@item.IdPago">Anular</a>
+    }
+</td>
+            </tr>
+        }
+    </tbody>
+</table>

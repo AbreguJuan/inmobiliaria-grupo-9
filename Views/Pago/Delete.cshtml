@@ -1,0 +1,53 @@
+@model inmobiliaria_grupo_9.Models.Pago
+
+@{
+    ViewData["Title"] = "Anular Pago";
+}
+
+<h1>Anular Pago</h1>
+
+<h4>¿Seguro que querés anular este pago?</h4>
+
+<hr />
+
+<dl class="row">
+
+    <dt class="col-sm-2">
+        Concepto
+    </dt>
+
+    <dd class="col-sm-10">
+        @Model.Concepto
+    </dd>
+
+    <dt class="col-sm-2">
+        Fecha
+    </dt>
+
+    <dd class="col-sm-10">
+        @Model.FechaPago.ToString("dd/MM/yyyy")
+    </dd>
+
+    <dt class="col-sm-2">
+        Importe
+    </dt>
+
+    <dd class="col-sm-10">
+        $ @Model.Importe
+    </dd>
+
+</dl>
+
+<form asp-action="DeleteConfirmado" method="post">
+
+    <input type="hidden" name="id" value="@Model.IdPago" />
+
+    <button type="submit" class="btn btn-danger">
+        Anular pago
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Cancelar
+    </a>
+
+</form>

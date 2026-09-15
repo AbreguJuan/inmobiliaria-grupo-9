@@ -1,0 +1,62 @@
+@model inmobiliaria_grupo_9.Models.Reserva
+
+@{
+    ViewData["Title"] = "Confirmar Finalización";
+}
+
+<h1>Confirmar Finalización</h1>
+
+<p>Se calculó la multa correspondiente por finalizar anticipadamente la reserva.</p>
+
+<dl class="row">
+    <dt class="col-sm-3">Código de reserva</dt>
+    <dd class="col-sm-9">@Model.IdReserva</dd>
+
+    <dt class="col-sm-3">Inquilino</dt>
+    <dd class="col-sm-9">
+        @if (Model.Inquilino != null)
+        {
+            @($"{Model.Inquilino.Nombre} {Model.Inquilino.Apellido}")
+        }
+    </dd>
+
+    <dt class="col-sm-3">Fecha original de finalización</dt>
+    <dd class="col-sm-9">@Model.Hasta.ToShortDateString()</dd>
+
+    <dt class="col-sm-3">Finalización anticipada</dt>
+    <dd class="col-sm-9">
+        @(((DateTime)ViewBag.FechaFinalizacion).ToShortDateString())
+    </dd>
+
+    <dt class="col-sm-3">Monto diario</dt>
+    <dd class="col-sm-9">$@Model.MontoDiario.ToString("N2")</dd>
+
+    <dt class="col-sm-3">Días restantes</dt>
+    <dd class="col-sm-9">@ViewBag.DiasRestantes</dd>
+
+    <dt class="col-sm-3">Porcentaje de multa</dt>
+    <dd class="col-sm-9">@ViewBag.PorcentajeMulta %</dd>
+
+    <dt class="col-sm-3"><strong>Multa a pagar</strong></dt>
+    <dd class="col-sm-9">
+        <strong>$@(((decimal)ViewBag.Multa).ToString("N2"))</strong>
+    </dd>
+</dl>
+
+<form asp-action="PagarMulta" method="post">
+    <input type="hidden" name="id" value="@Model.IdReserva" />
+
+    <input type="hidden"
+           name="fechaFinalizacion"
+           value="@(((DateTime)ViewBag.FechaFinalizacion).ToString("yyyy-MM-dd"))" />
+
+    <input type="hidden"
+           name="multa"
+           value="@ViewBag.Multa" />
+
+    <button type="submit" class="btn btn-primary">
+        Pagar multa y finalizar
+    </button>
+
+    <a asp-action="Index">Cancelar</a>
+</form>

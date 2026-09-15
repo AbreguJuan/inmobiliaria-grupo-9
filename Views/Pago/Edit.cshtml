@@ -1,0 +1,44 @@
+@model inmobiliaria_grupo_9.Models.Pago
+
+@{
+    ViewData["Title"] = "Editar Pago";
+}
+
+<h1>Editar Pago</h1>
+
+<form asp-action="Edit" method="post">
+
+    <input type="hidden" asp-for="IdPago" />
+    <input type="hidden" asp-for="IdReserva" />
+    <input type="hidden" asp-for="FechaPago" />
+    <input type="hidden" asp-for="Importe" />
+    <input type="hidden" asp-for="Anulado" />
+
+    <div class="mb-3">
+        <label asp-for="Concepto" class="form-label"></label>
+        <input asp-for="Concepto" class="form-control" />
+        <span asp-validation-for="Concepto" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label>Fecha</label>
+        <input value="@Model.FechaPago.ToString("dd/MM/yyyy")"
+               class="form-control"
+               readonly />
+    </div>
+
+    <div class="mb-3">
+        <label>Importe</label>
+        <input value="@Model.Importe"
+               class="form-control"
+               readonly />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Guardar cambios
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Volver
+    </a>
+</form>

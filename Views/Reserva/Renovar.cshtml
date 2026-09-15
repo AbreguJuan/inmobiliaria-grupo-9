@@ -1,0 +1,73 @@
+@model inmobiliaria_grupo_9.Models.Reserva
+
+@{
+    ViewData["Title"] = "Renovar Reserva";
+}
+
+<h1>Renovar Reserva</h1>
+
+<p>Seleccione la nueva fecha de finalización de la reserva.</p>
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<dl class="row">
+    <dt class="col-sm-3">Código</dt>
+    <dd class="col-sm-9">@Model.IdReserva</dd>
+
+    <dt class="col-sm-3">Inquilino</dt>
+    <dd class="col-sm-9">
+        @if (Model.Inquilino != null)
+        {
+            @($"{Model.Inquilino.Nombre} {Model.Inquilino.Apellido}")
+        }
+    </dd>
+
+    <dt class="col-sm-3">Inmueble</dt>
+    <dd class="col-sm-9">
+        @if (Model.Inmueble != null)
+        {
+            @($"{Model.Inmueble.Tipo} - {Model.Inmueble.Direccion}")
+        }
+    </dd>
+
+    <dt class="col-sm-3">Desde</dt>
+    <dd class="col-sm-9">
+        @Model.Desde.ToShortDateString()
+    </dd>
+
+    <dt class="col-sm-3">Finalización actual</dt>
+    <dd class="col-sm-9">
+        @Model.Hasta.ToShortDateString()
+    </dd>
+
+    <dt class="col-sm-3">Monto diario</dt>
+    <dd class="col-sm-9">
+        $@Model.MontoDiario.ToString("N2")
+    </dd>
+</dl>
+
+<form asp-action="RenovarConfirmado" method="post">
+
+    <input type="hidden"
+           name="id"
+           value="@Model.IdReserva" />
+
+    <div class="mb-3">
+        <label for="nuevaFechaHasta" class="form-label">
+            Nueva fecha de finalización
+        </label>
+
+        <input type="date"
+               id="nuevaFechaHasta"
+               name="nuevaFechaHasta"
+               class="form-control"
+               min="@Model.Hasta.AddDays(1).ToString("yyyy-MM-dd")"
+               required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Renovar Reserva
+    </button>
+
+    <a asp-action="Index">Volver</a>
+</form>

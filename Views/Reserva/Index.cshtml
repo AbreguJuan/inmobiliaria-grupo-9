@@ -46,9 +46,38 @@
                 <td>@item.Hasta.ToShortDateString()</td>
 
                 <td>
-                    <a asp-action="Details" asp-route-id="@item.IdReserva">Detalles</a> |
-                    <a asp-action="Edit" asp-route-id="@item.IdReserva">Editar</a> |
-                    <a asp-action="Delete" asp-route-id="@item.IdReserva">Eliminar</a>
+                    <a asp-action="Details"
+                       asp-route-id="@item.IdReserva">Detalles</a> |
+
+                    <a asp-action="Edit"
+                       asp-route-id="@item.IdReserva">Editar</a> |
+
+                    <a asp-action="Delete"
+                       asp-route-id="@item.IdReserva">Eliminar</a> |
+
+                    <a asp-controller="Pago"
+                       asp-action="PorReserva"
+                       asp-route-idReserva="@item.IdReserva">Ver pagos</a> |
+
+                    <a asp-controller="Pago"
+                       asp-action="Create"
+                       asp-route-idReserva="@item.IdReserva">Agregar pago</a> |
+
+                    @if (!item.Finalizada)
+{
+    <a asp-action="Renovar"
+       asp-route-id="@item.IdReserva">Renovar</a>
+
+    <span> | </span>
+
+    <a asp-action="Finalizar"
+       asp-route-id="@item.IdReserva">Finalizar</a>
+}
+else
+{
+    <span>Finalizada</span>
+}
+              
                 </td>
             </tr>
         }

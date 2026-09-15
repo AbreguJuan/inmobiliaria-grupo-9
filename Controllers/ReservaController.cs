@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using inmobiliaria_grupo_9.Models;
 
+
 namespace inmobiliaria_grupo_9.Controllers
 {
     public class ReservaController : Controller
@@ -10,15 +11,19 @@ namespace inmobiliaria_grupo_9.Controllers
         private readonly IRepositorioInquilino _repositorioInquilino;
         private readonly IRepositorioInmueble _repositorioInmueble;
 
-        public ReservaController(
-            IRepositorioReserva repositorioReserva,
-            IRepositorioInquilino repositorioInquilino,
-            IRepositorioInmueble repositorioInmueble)
-        {
-            _repositorioReserva = repositorioReserva;
-            _repositorioInquilino = repositorioInquilino;
-            _repositorioInmueble = repositorioInmueble;
-        }
+        private readonly IRepositorioPago _repositorioPago;
+
+       public ReservaController(
+    IRepositorioReserva repositorioReserva,
+    IRepositorioInquilino repositorioInquilino,
+    IRepositorioInmueble repositorioInmueble,
+    IRepositorioPago repositorioPago)
+{
+    _repositorioReserva = repositorioReserva;
+    _repositorioInquilino = repositorioInquilino;
+    _repositorioInmueble = repositorioInmueble;
+    _repositorioPago = repositorioPago;
+}
 
         private void CargarListas(int? idInquilino = null, int? idInmueble = null)
         {
@@ -77,10 +82,22 @@ namespace inmobiliaria_grupo_9.Controllers
                 }
 
                 if (ModelState.IsValid)
-                {
-                    _repositorioReserva.Alta(reserva);
-                    return RedirectToAction(nameof(Index));
-                }
+{
+    var inmueble = _repositorioInmueble.ObtenerPorId(reserva.IdInmueble);
+
+    if (inmueble == null)
+    {
+        ModelState.AddModelError("", "No se encontró el inmueble seleccionado");
+        CargarListas(reserva.IdInquilino, reserva.IdInmueble);
+        return View(reserva);
+    }
+
+    reserva.MontoDiario = Convert.ToDecimal(inmueble.PrecioXDia);
+
+    _repositorioReserva.Alta(reserva);
+
+    return RedirectToAction(nameof(Index));
+}
                 CargarListas(reserva.IdInquilino, reserva.IdInmueble);
                 return View(reserva);
             }
@@ -159,5 +176,180 @@ namespace inmobiliaria_grupo_9.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+        public IActionResult Finalizar(int id)
+{
+             var reserva = _repositorioReserva.ObtenerPorId(id);
+
+             if (reserva == null)
+            {
+              return NotFound();
+            }
+
+            return View(reserva);
+}
+
+         [HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult FinalizarConfirmado(int id, DateTime fechaFinalizacion)
+{
+    var reserva = _repositorioReserva.ObtenerPorId(id);
+
+    if (reserva == null)
+    {
+        return NotFound();
     }
+
+    if (fechaFinalizacion <= reserva.Desde ||
+        fechaFinalizacion >= reserva.Hasta)
+    {
+        ModelState.AddModelError(
+            "",
+            "La fecha de finalización debe estar entre la fecha de inicio y la fecha de fin original."
+        );
+
+        return View("Finalizar", reserva);
+    }
+
+    double diasTotales = (reserva.Hasta - reserva.Desde).TotalDays;
+    double diasTranscurridos = (fechaFinalizacion - reserva.Desde).TotalDays;
+    double diasRestantes = (reserva.Hasta - fechaFinalizacion).TotalDays;
+    decimal alquilerRestante =
+        (decimal)diasRestantes * reserva.MontoDiario;
+
+    decimal porcentajeMulta;
+
+
+    if (diasTranscurridos < diasTotales / 2)
+    {
+        porcentajeMulta = 0.50m;
+    }
+    else
+    {
+        porcentajeMulta = 0.25m;
+    }
+
+    decimal multa = alquilerRestante * porcentajeMulta;
+
+    ViewBag.FechaFinalizacion = fechaFinalizacion;
+    ViewBag.DiasRestantes = diasRestantes;
+    ViewBag.PorcentajeMulta = porcentajeMulta * 100;
+    ViewBag.Multa = multa;
+
+    return View("ConfirmarFinalizacion", reserva);
+}
+[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult PagarMulta(
+    int id,
+    DateTime fechaFinalizacion,
+    decimal multa)
+{
+    try
+    {
+        var reserva = _repositorioReserva.ObtenerPorId(id);
+
+        if (reserva == null)
+        {
+            return NotFound();
+        }
+
+        if (reserva.Finalizada)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Registramos la multa como un pago de la reserva
+        var pago = new Pago
+        {
+            IdReserva = id,
+            Concepto = "Multa por finalización anticipada",
+            FechaPago = DateTime.Now,
+            Importe = multa,
+            Anulado = false
+        };
+
+        _repositorioPago.Alta(pago);
+
+        // Recién después de registrar el pago,
+        // finalizamos la reserva.
+        _repositorioReserva.FinalizarReserva(id, fechaFinalizacion);
+
+        return RedirectToAction(nameof(Index));
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al finalizar reserva: {ex.Message}");
+        return RedirectToAction(nameof(Index));
+    }
+}
+
+
+// GET: Reserva/Renovar/5
+public IActionResult Renovar(int id)
+{
+    var reserva = _repositorioReserva.ObtenerPorId(id);
+
+    if (reserva == null)
+    {
+        return NotFound();
+    }
+
+    if (reserva.Finalizada)
+    {
+        return RedirectToAction(nameof(Index));
+    }
+
+    return View(reserva);
+}
+
+
+// POST: Reserva/Renovar
+[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult RenovarConfirmado(int id, DateTime nuevaFechaHasta)
+{
+    var reserva = _repositorioReserva.ObtenerPorId(id);
+
+    if (reserva == null)
+    {
+        return NotFound();
+    }
+
+    if (reserva.Finalizada)
+    {
+        return RedirectToAction(nameof(Index));
+    }
+
+    // La nueva fecha tiene que ser posterior a la fecha Hasta actual
+    if (nuevaFechaHasta <= reserva.Hasta)
+    {
+        ModelState.AddModelError(
+            "",
+            "La nueva fecha de finalización debe ser posterior a la fecha actual."
+        );
+
+        return View("Renovar", reserva);
+    }
+
+    // Controlamos que la extensión no se superponga
+    // con otra reserva del mismo inmueble
+    if (_repositorioReserva.ExisteSuperposicion(
+        reserva.IdInmueble,
+        reserva.Hasta,
+        nuevaFechaHasta,
+        reserva.IdReserva))
+    {
+        ModelState.AddModelError(
+            "",
+            "No se puede renovar porque el inmueble tiene otra reserva en ese período."
+        );
+
+        return View("Renovar", reserva);
+    }
+
+    _repositorioReserva.RenovarReserva(id, nuevaFechaHasta);
+
+    return RedirectToAction(nameof(Index));
+}
+}
 }

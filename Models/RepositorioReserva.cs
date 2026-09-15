@@ -17,9 +17,9 @@ namespace inmobiliaria_grupo_9.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"INSERT INTO reserva
-                    (ID_Inquilino, ID_Inmueble, Desde, Hasta, ID_Pago)
-                    VALUES (@idInquilino, @idInmueble, @desde, @hasta, @idPago);
-                    SELECT LAST_INSERT_ID();";
+    (ID_Inquilino, ID_Inmueble, Desde, Hasta, MontoDiario)
+    VALUES (@idInquilino, @idInmueble, @desde, @hasta, @montoDiario);
+    SELECT LAST_INSERT_ID();";
 
                 using (var command = new MySqlCommand(sql, connection))
                 {
@@ -29,11 +29,12 @@ namespace inmobiliaria_grupo_9.Models
                     command.Parameters.AddWithValue("@idInmueble", r.IdInmueble);
                     command.Parameters.AddWithValue("@desde", r.Desde);
                     command.Parameters.AddWithValue("@hasta", r.Hasta);
-                    command.Parameters.AddWithValue("@idPago", (object?)r.IdPago ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@montoDiario", r.MontoDiario);
 
                     connection.Open();
 
-                    res = System.Convert.ToInt32(command.ExecuteScalar());
+                    res = Convert.ToInt32(command.ExecuteScalar());
+
                     r.IdReserva = res;
 
                     connection.Close();
@@ -76,8 +77,7 @@ namespace inmobiliaria_grupo_9.Models
                     ID_Inquilino = @idInquilino,
                     ID_Inmueble = @idInmueble,
                     Desde = @desde,
-                    Hasta = @hasta,
-                    ID_Pago = @idPago
+                    Hasta = @hasta
                     WHERE ID_Reserva = @id";
 
                 using (var command = new MySqlCommand(sql, connection))
@@ -86,7 +86,6 @@ namespace inmobiliaria_grupo_9.Models
                     command.Parameters.AddWithValue("@idInmueble", r.IdInmueble);
                     command.Parameters.AddWithValue("@desde", r.Desde);
                     command.Parameters.AddWithValue("@hasta", r.Hasta);
-                    command.Parameters.AddWithValue("@idPago", (object?)r.IdPago ?? DBNull.Value);
                     command.Parameters.AddWithValue("@id", r.IdReserva);
 
                     connection.Open();
@@ -113,7 +112,10 @@ namespace inmobiliaria_grupo_9.Models
                         r.ID_Inmueble AS IdInmueble,
                         r.Desde,
                         r.Hasta,
-                        r.ID_Pago AS IdPago,
+                        r.MontoDiario,
+                        r.Finalizada,
+                        r.FechaFinalizacion,
+
 
                         i.Nombre AS NombreInquilino,
                         i.Apellido AS ApellidoInquilino,
@@ -149,10 +151,11 @@ namespace inmobiliaria_grupo_9.Models
                             IdInmueble = reader.GetInt32("IdInmueble"),
                             Desde = reader.GetDateTime("Desde"),
                             Hasta = reader.GetDateTime("Hasta"),
-
-                            IdPago = reader.IsDBNull(reader.GetOrdinal("IdPago"))
-                                ? null
-                                : reader.GetInt32("IdPago"),
+                            MontoDiario = reader.GetDecimal("MontoDiario"),
+                            Finalizada = reader.GetBoolean("Finalizada"),
+                            FechaFinalizacion = reader.IsDBNull(reader.GetOrdinal("FechaFinalizacion"))
+                            ? null
+                        : reader.GetDateTime("FechaFinalizacion"),
 
                             Inquilino = new Inquilino
                             {
@@ -189,7 +192,7 @@ namespace inmobiliaria_grupo_9.Models
                 {
                     connection.Open();
 
-                    res = System.Convert.ToInt32(command.ExecuteScalar());
+                    res = Convert.ToInt32(command.ExecuteScalar());
 
                     connection.Close();
                 }
@@ -211,7 +214,9 @@ namespace inmobiliaria_grupo_9.Models
                         r.ID_Inmueble AS IdInmueble,
                         r.Desde,
                         r.Hasta,
-                        r.ID_Pago AS IdPago,
+                        r.MontoDiario,
+                        r.Finalizada,
+                        r.FechaFinalizacion,
 
                         i.Nombre AS NombreInquilino,
                         i.Apellido AS ApellidoInquilino,
@@ -246,10 +251,11 @@ namespace inmobiliaria_grupo_9.Models
                             IdInmueble = reader.GetInt32("IdInmueble"),
                             Desde = reader.GetDateTime("Desde"),
                             Hasta = reader.GetDateTime("Hasta"),
-
-                            IdPago = reader.IsDBNull(reader.GetOrdinal("IdPago"))
-                                ? null
-                                : reader.GetInt32("IdPago"),
+                            MontoDiario = reader.GetDecimal("MontoDiario"),
+                            Finalizada = reader.GetBoolean("Finalizada"),
+                            FechaFinalizacion = reader.IsDBNull(reader.GetOrdinal("FechaFinalizacion"))
+                            ? null
+                            : reader.GetDateTime("FechaFinalizacion"),
 
                             Inquilino = new Inquilino
                             {
@@ -273,31 +279,94 @@ namespace inmobiliaria_grupo_9.Models
 
             return r;
         }
-        //Verifica que no se genere una nueva reserva si ya hay otra reserva en esas fechas (a menos que genere el dia que se acabe la reserva. ej: CheckOut 05/05/20XX - CheckIn 05/05/20XX)
-        public bool ExisteSuperposicion(int idInmueble, DateTime desde, DateTime hasta, int idReservaExcluida = 0)
+
+        // Verifica que no se genere una nueva reserva
+        // si el inmueble ya está reservado en esas fechas.
+        public bool ExisteSuperposicion(
+            int idInmueble,
+            DateTime desde,
+            DateTime hasta,
+            int idReservaExcluida = 0)
         {
             bool existe = false;
+
             using (var connection = new MySqlConnection(connectionString))
             {
-                // Dos rangos de fechas se superponen si: A.Desde < B.Hasta AND A.Hasta > B.Desde
-                string sql = @"SELECT COUNT(*) FROM reserva
-            WHERE ID_Inmueble = @idInmueble
-              AND ID_Reserva <> @idExcluir
-              AND Desde < @hasta
-              AND Hasta > @desde";
+                string sql = @"SELECT COUNT(*)
+                    FROM reserva
+                    WHERE ID_Inmueble = @idInmueble
+                    AND ID_Reserva <> @idExcluir
+                    AND Desde < @hasta
+                    AND Hasta > @desde";
+
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@idInmueble", idInmueble);
                     command.Parameters.AddWithValue("@idExcluir", idReservaExcluida);
                     command.Parameters.AddWithValue("@desde", desde);
                     command.Parameters.AddWithValue("@hasta", hasta);
+
                     connection.Open();
+
                     int cantidad = Convert.ToInt32(command.ExecuteScalar());
+
                     existe = cantidad > 0;
+
                     connection.Close();
                 }
             }
+
             return existe;
         }
+        public int FinalizarReserva(int idReserva, DateTime fechaFinalizacion)
+{
+    int res = -1;
+
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string sql = @"UPDATE reserva
+                       SET Finalizada = 1,
+                           FechaFinalizacion = @fechaFinalizacion
+                       WHERE ID_Reserva = @idReserva";
+
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@fechaFinalizacion", fechaFinalizacion);
+            command.Parameters.AddWithValue("@idReserva", idReserva);
+
+            connection.Open();
+            res = command.ExecuteNonQuery();
+            connection.Close();
+        }
     }
+
+    return res;
 }
+    
+    public int RenovarReserva(int idReserva, DateTime nuevaFechaHasta)
+{
+    int res = -1;
+
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string sql = @"UPDATE reserva
+                       SET Hasta = @nuevaFechaHasta
+                       WHERE ID_Reserva = @idReserva
+                       AND Finalizada = 0";
+
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@nuevaFechaHasta", nuevaFechaHasta);
+            command.Parameters.AddWithValue("@idReserva", idReserva);
+
+            connection.Open();
+            res = command.ExecuteNonQuery();
+        }
+    }
+
+    return res;
+}
+}
+}
+   
+

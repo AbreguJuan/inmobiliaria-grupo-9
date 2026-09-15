@@ -1,0 +1,60 @@
+@model inmobiliaria_grupo_9.Models.Reserva
+
+@{
+    ViewData["Title"] = "Finalizar Reserva";
+}
+
+<h1>Finalizar Reserva</h1>
+
+<p>¿Está seguro de que desea finalizar esta reserva?</p>
+
+<dl class="row">
+    <dt class="col-sm-2">Código</dt>
+    <dd class="col-sm-10">@Model.IdReserva</dd>
+
+    <dt class="col-sm-2">Inquilino</dt>
+    <dd class="col-sm-10">
+        @if (Model.Inquilino != null)
+        {
+            @($"{Model.Inquilino.Nombre} {Model.Inquilino.Apellido}")
+        }
+    </dd>
+
+    <dt class="col-sm-2">Inmueble</dt>
+    <dd class="col-sm-10">
+        @if (Model.Inmueble != null)
+        {
+            @($"{Model.Inmueble.Tipo} - {Model.Inmueble.Direccion}")
+        }
+    </dd>
+
+    <dt class="col-sm-2">Desde</dt>
+    <dd class="col-sm-10">@Model.Desde.ToShortDateString()</dd>
+
+    <dt class="col-sm-2">Hasta</dt>
+    <dd class="col-sm-10">@Model.Hasta.ToShortDateString()</dd>
+</dl>
+
+<form asp-action="FinalizarConfirmado" method="post">
+    <input type="hidden" name="id" value="@Model.IdReserva" />
+
+    <div class="mb-3">
+        <label for="fechaFinalizacion" class="form-label">
+            Fecha de finalización anticipada
+        </label>
+
+        <input type="date"
+               id="fechaFinalizacion"
+               name="fechaFinalizacion"
+               class="form-control"
+               min="@Model.Desde.ToString("yyyy-MM-dd")"
+               max="@Model.Hasta.AddDays(-1).ToString("yyyy-MM-dd")"
+               required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Calcular multa
+    </button>
+
+    <a asp-action="Index">Volver</a>
+</form>

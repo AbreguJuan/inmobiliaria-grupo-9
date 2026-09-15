@@ -1,3 +1,5 @@
+CREATE DATABASE  IF NOT EXISTS `inmobiliariagrupo9` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `inmobiliariagrupo9`;
 -- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
 --
 -- Host: localhost    Database: inmobiliariagrupo9
@@ -79,6 +81,36 @@ INSERT INTO `inquilino` VALUES (1,'Pedro','Montenegro','25784235','3254698745','
 UNLOCK TABLES;
 
 --
+-- Table structure for table `pago`
+--
+
+DROP TABLE IF EXISTS `pago`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pago` (
+  `IdPago` int NOT NULL AUTO_INCREMENT,
+  `IdReserva` int NOT NULL,
+  `Concepto` varchar(100) NOT NULL,
+  `FechaPago` datetime NOT NULL,
+  `Importe` decimal(10,2) NOT NULL,
+  `Anulado` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`IdPago`),
+  KEY `FK_Pago_Reserva` (`IdReserva`),
+  CONSTRAINT `FK_Pago_Reserva` FOREIGN KEY (`IdReserva`) REFERENCES `reserva` (`ID_Reserva`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `pago`
+--
+
+LOCK TABLES `pago` WRITE;
+/*!40000 ALTER TABLE `pago` DISABLE KEYS */;
+INSERT INTO `pago` VALUES (1,1,'Seña de reserva','2026-09-14 21:52:54',1000.00,0);
+/*!40000 ALTER TABLE `pago` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `propietario`
 --
 
@@ -120,13 +152,15 @@ CREATE TABLE `reserva` (
   `ID_Inmueble` int NOT NULL,
   `Desde` date NOT NULL,
   `Hasta` date NOT NULL,
-  `ID_Pago` double DEFAULT NULL,
+  `FechaFinalizacion` datetime DEFAULT NULL,
+  `Finalizada` tinyint(1) NOT NULL DEFAULT '0',
+  `MontoDiario` decimal(10,2) NOT NULL DEFAULT '0.00',
   PRIMARY KEY (`ID_Reserva`),
   KEY `ID_Inquilino_idx` (`ID_Inquilino`),
   KEY `ID_Inmueble_idx` (`ID_Inmueble`),
   CONSTRAINT `ID_Inmueble` FOREIGN KEY (`ID_Inmueble`) REFERENCES `inmueble` (`ID_Inmueble`),
   CONSTRAINT `ID_Inquilino` FOREIGN KEY (`ID_Inquilino`) REFERENCES `inquilino` (`ID_Inquilino`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -135,7 +169,7 @@ CREATE TABLE `reserva` (
 
 LOCK TABLES `reserva` WRITE;
 /*!40000 ALTER TABLE `reserva` DISABLE KEYS */;
-INSERT INTO `reserva` VALUES (1,3,1,'2026-09-09','2026-09-20',NULL);
+INSERT INTO `reserva` VALUES (1,3,1,'2026-09-09','2026-09-20','2026-09-15 09:54:52',1,0.00),(2,2,1,'2026-09-21','2026-09-30',NULL,0,5000.00),(3,3,1,'2026-10-01','2026-10-15',NULL,0,5000.00),(4,1,1,'2026-10-16','2026-10-20',NULL,0,5000.00);
 /*!40000 ALTER TABLE `reserva` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -148,4 +182,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-03 16:13:15
+-- Dump completed on 2026-09-15 11:16:09
