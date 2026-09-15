@@ -26,7 +26,7 @@ DROP TABLE IF EXISTS `inmueble`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `inmueble` (
   `ID_Inmueble` int NOT NULL AUTO_INCREMENT,
-  `Tipo` varchar(45) NOT NULL,
+  `ID_TipoInmueble` int NOT NULL,
   `Provincia` varchar(45) NOT NULL,
   `Localidad` varchar(45) NOT NULL,
   `Direccion` varchar(45) NOT NULL,
@@ -38,8 +38,10 @@ CREATE TABLE `inmueble` (
   `Habilitado` tinyint NOT NULL,
   PRIMARY KEY (`ID_Inmueble`),
   KEY `ID_Propietario_idx` (`ID_Propietario`),
-  CONSTRAINT `ID_Propietario` FOREIGN KEY (`ID_Propietario`) REFERENCES `propietario` (`ID_Propietario`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `ID_TipoInmueble_idx` (`ID_TipoInmueble`),
+  CONSTRAINT `ID_Propietario` FOREIGN KEY (`ID_Propietario`) REFERENCES `propietario` (`ID_Propietario`),
+  CONSTRAINT `ID_TipoInmueble` FOREIGN KEY (`ID_TipoInmueble`) REFERENCES `tipo_inmueble` (`ID_TipoInmueble`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -48,7 +50,7 @@ CREATE TABLE `inmueble` (
 
 LOCK TABLES `inmueble` WRITE;
 /*!40000 ALTER TABLE `inmueble` DISABLE KEYS */;
-INSERT INTO `inmueble` VALUES (1,'Depto','Buenos Aires','Palermo','Av. Santa Fe 1234',5000,45,2,1,1,1);
+INSERT INTO `inmueble` VALUES (1,2,'Buenos Aires','Palermo','Av. Santa Fe 1234',5000,45,2,1,1,1),(2,3,'San Luis','Merlo','Av. Siempre Saa',10000,30,2,1,6,1),(3,1,'Santiago del Estero','Capital','Av. Juan Domingo Peron',6000,26,2,1,6,0),(4,1,'Tucuman','Tucuman','Cordoba 256',7000,30,3,1,3,1);
 /*!40000 ALTER TABLE `inmueble` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -67,7 +69,7 @@ CREATE TABLE `inquilino` (
   `Telefono` varchar(45) NOT NULL,
   `Email` varchar(45) NOT NULL,
   PRIMARY KEY (`ID_Inquilino`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -76,7 +78,7 @@ CREATE TABLE `inquilino` (
 
 LOCK TABLES `inquilino` WRITE;
 /*!40000 ALTER TABLE `inquilino` DISABLE KEYS */;
-INSERT INTO `inquilino` VALUES (1,'Pedro','Montenegro','25784235','3254698745','montenegropedro@mail.com'),(2,'Maria','Antonieta','25486325','3241794648','antonietamaria@mail.com'),(3,'Milagros','Alfaro','45765345','2664037410','milagrosalfaro225@gmail.com');
+INSERT INTO `inquilino` VALUES (1,'Pedro','Montenegro','25784235','3254698745','montenegropedro@mail.com'),(2,'Maria','Antonieta','25486325','3241794648','antonietamaria@mail.com'),(3,'Milagros','Alfaro','45765345','2664037410','milagrosalfaro225@gmail.com'),(4,'das','dsa','dsa','dsa','dsa@dsa.com');
 /*!40000 ALTER TABLE `inquilino` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -126,7 +128,7 @@ CREATE TABLE `propietario` (
   `Email` varchar(45) NOT NULL,
   `Clave` varchar(45) NOT NULL,
   PRIMARY KEY (`ID_Propietario`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -135,7 +137,7 @@ CREATE TABLE `propietario` (
 
 LOCK TABLES `propietario` WRITE;
 /*!40000 ALTER TABLE `propietario` DISABLE KEYS */;
-INSERT INTO `propietario` VALUES (1,'Juan','Perez','30111222','1122334455','juan.perez@mail.com','1234'),(2,'Maria','Gomez','28222333','1133445566','maria.gomez@mail.com','1234'),(3,'Carlos','Lopez','25333444','1144556677','carlos.lopez@mail.com','1234'),(6,'Lucas','Rodrigaño','45862135','4567135764','lucarodrigano@mail.com','1234'),(12,'Milagros Modificado','gomez','4566666','2665888888','prueba5@gmail.com','12345');
+INSERT INTO `propietario` VALUES (1,'Juan','Perez','30111222','1122334455','juan.perez@mail.com','1234'),(2,'Maria','Gomez','28222333','1133445566','maria.gomez@mail.com','1234'),(3,'Carlos','Lopez','25333444','1144556677','carlos.lopez@mail.com','1234'),(6,'Lucas','Rodrigaño','45862135','4567135764','lucarodrigano@mail.com','1234'),(12,'Milagros Modificado','gomez','4566666','2665888888','prueba5@gmail.com','12345'),(13,'asdfsafd','asdfasdf','asdfasdf','asdfasdf','asdasd@mail.com','asd');
 /*!40000 ALTER TABLE `propietario` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -160,7 +162,7 @@ CREATE TABLE `reserva` (
   KEY `ID_Inmueble_idx` (`ID_Inmueble`),
   CONSTRAINT `ID_Inmueble` FOREIGN KEY (`ID_Inmueble`) REFERENCES `inmueble` (`ID_Inmueble`),
   CONSTRAINT `ID_Inquilino` FOREIGN KEY (`ID_Inquilino`) REFERENCES `inquilino` (`ID_Inquilino`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -169,8 +171,33 @@ CREATE TABLE `reserva` (
 
 LOCK TABLES `reserva` WRITE;
 /*!40000 ALTER TABLE `reserva` DISABLE KEYS */;
-INSERT INTO `reserva` VALUES (1,3,1,'2026-09-09','2026-09-20','2026-09-15 09:54:52',1,0.00),(2,2,1,'2026-09-21','2026-09-30',NULL,0,5000.00),(3,3,1,'2026-10-01','2026-10-15',NULL,0,5000.00),(4,1,1,'2026-10-16','2026-10-20',NULL,0,5000.00);
+INSERT INTO `reserva` VALUES (1,3,1,'2026-09-09','2026-09-20','2026-09-15 09:54:52',1,0.00),(2,2,1,'2026-09-21','2026-09-30',NULL,0,5000.00),(3,3,1,'2026-10-01','2026-10-15',NULL,0,5000.00),(4,1,1,'2026-10-16','2026-10-20',NULL,0,5000.00),(5,4,2,'2026-09-18','2026-09-21',NULL,0,10000.00),(6,2,3,'2026-09-18','2026-09-21',NULL,0,6000.00),(7,2,4,'2026-09-16','2026-09-30',NULL,0,7000.00);
 /*!40000 ALTER TABLE `reserva` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `tipo_inmueble`
+--
+
+DROP TABLE IF EXISTS `tipo_inmueble`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tipo_inmueble` (
+  `ID_TipoInmueble` int NOT NULL AUTO_INCREMENT,
+  `Nombre` varchar(50) NOT NULL,
+  `Habilitado` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`ID_TipoInmueble`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tipo_inmueble`
+--
+
+LOCK TABLES `tipo_inmueble` WRITE;
+/*!40000 ALTER TABLE `tipo_inmueble` DISABLE KEYS */;
+INSERT INTO `tipo_inmueble` VALUES (1,'Casa',1),(2,'Departamento',1),(3,'Habitacion de Hotel',1),(4,'Airbnb',0);
+/*!40000 ALTER TABLE `tipo_inmueble` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -182,4 +209,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-15 11:16:09
+-- Dump completed on 2026-09-15 19:52:19
