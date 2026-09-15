@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using inmobiliaria_grupo_9.Models;
 
@@ -8,11 +9,16 @@ namespace inmobiliaria_grupo_9.Controllers
     {
         private readonly IRepositorioInmueble _repositorioInmueble;
         private readonly IRepositorioPropietario _repositorioPropietario;
+        private readonly IRepositorioTipoDeInmueble _repositorioTipoDeInmueble;
 
-        public InmuebleController(IRepositorioInmueble repositorioInmueble, IRepositorioPropietario repositorioPropietario)
+        public InmuebleController(
+            IRepositorioInmueble repositorioInmueble,
+            IRepositorioPropietario repositorioPropietario,
+            IRepositorioTipoDeInmueble repositorioTipoDeInmueble)
         {
             _repositorioInmueble = repositorioInmueble;
             _repositorioPropietario = repositorioPropietario;
+            _repositorioTipoDeInmueble = repositorioTipoDeInmueble;
         }
 
         public ActionResult Index(int paginaNro = 1, int tamPagina = 10)
@@ -35,6 +41,7 @@ namespace inmobiliaria_grupo_9.Controllers
             try
             {
                 ViewBag.Propietarios = _repositorioPropietario.ObtenerLista(1, 100);
+                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 100).Where(t => t.Habilitado).ToList();
                 return View();
             }
             catch (Exception ex)
@@ -57,11 +64,13 @@ namespace inmobiliaria_grupo_9.Controllers
                     return RedirectToAction(nameof(Index));
                 }
                 ViewBag.Propietarios = _repositorioPropietario.ObtenerLista(1, 100);
+                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 100).Where(t => t.Habilitado).ToList();
                 return View(entidad);
             }
             catch (Exception ex)
             {
                 ViewBag.Propietarios = _repositorioPropietario.ObtenerLista(1, 100);
+                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 100).Where(t => t.Habilitado).ToList();
                 ViewBag.Error = ex.Message;
                 return View(entidad);
             }
@@ -71,8 +80,9 @@ namespace inmobiliaria_grupo_9.Controllers
         {
             var entidad = _repositorioInmueble.ObtenerPorId(id);
             if (entidad == null) return NotFound();
-            
+
             ViewBag.Propietarios = _repositorioPropietario.ObtenerLista(1, 100);
+            ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 100).Where(t => t.Habilitado).ToList();
             return View(entidad);
         }
 
@@ -90,11 +100,13 @@ namespace inmobiliaria_grupo_9.Controllers
                     return RedirectToAction(nameof(Index));
                 }
                 ViewBag.Propietarios = _repositorioPropietario.ObtenerLista(1, 100);
+                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 100).Where(t => t.Habilitado).ToList();
                 return View(entidad);
             }
             catch (Exception ex)
             {
                 ViewBag.Propietarios = _repositorioPropietario.ObtenerLista(1, 100);
+                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 100).Where(t => t.Habilitado).ToList();
                 ViewBag.Error = ex.Message;
                 return View(entidad);
             }

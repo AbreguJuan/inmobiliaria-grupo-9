@@ -24,7 +24,7 @@
     <dd class="col-sm-10">
         @if (Model.Inmueble != null)
         {
-            @($"{Model.Inmueble.Tipo} - {Model.Inmueble.Direccion}")
+            @($"{Model.Inmueble.TipoDeInmueble?.Nombre} - {Model.Inmueble.Direccion}")
         }
     </dd>
 

@@ -9,8 +9,12 @@ namespace inmobiliaria_grupo_9.Models
         [Display(Name = "Código")]
         public int IdInmueble { get; set; }
 
-        [Required]
-        public string Tipo { get; set; } = "";
+        [Required(ErrorMessage = "Elegí un tipo de inmueble")]
+        [Display(Name = "Tipo")]
+        public int IdTipoInmueble { get; set; }
+
+        [ForeignKey(nameof(IdTipoInmueble))]
+        public TipoDeInmueble? TipoDeInmueble { get; set; }
 
         [Required]
         public string Provincia { get; set; } = "";
@@ -46,7 +50,7 @@ namespace inmobiliaria_grupo_9.Models
 
         public override string ToString()
         {
-            return $"{Tipo} - {Direccion} ({Localidad})";
+            return $"{TipoDeInmueble?.Nombre} - {Direccion} ({Localidad})";
         }
     }
 }

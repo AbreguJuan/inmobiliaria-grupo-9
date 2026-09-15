@@ -120,16 +120,14 @@ namespace inmobiliaria_grupo_9.Models
                         i.Nombre AS NombreInquilino,
                         i.Apellido AS ApellidoInquilino,
 
-                        inm.Tipo AS TipoInmueble,
+                        inm.ID_TipoInmueble AS IdTipoInmuebleInmueble,
+                        t.Nombre AS TipoInmueble,
                         inm.Direccion AS DireccionInmueble
 
                     FROM reserva r
-
-                    INNER JOIN inquilino i
-                        ON r.ID_Inquilino = i.ID_Inquilino
-
-                    INNER JOIN inmueble inm
-                        ON r.ID_Inmueble = inm.ID_Inmueble
+                    INNER JOIN inquilino i ON r.ID_Inquilino = i.ID_Inquilino
+                    INNER JOIN inmueble inm ON r.ID_Inmueble = inm.ID_Inmueble
+                    INNER JOIN tipo_inmueble t ON inm.ID_TipoInmueble = t.ID_TipoInmueble
 
                     ORDER BY r.ID_Reserva
 
@@ -167,7 +165,8 @@ namespace inmobiliaria_grupo_9.Models
                             Inmueble = new Inmueble
                             {
                                 IdInmueble = reader.GetInt32("IdInmueble"),
-                                Tipo = reader.GetString("TipoInmueble"),
+                                IdTipoInmueble = reader.GetInt32("IdTipoInmuebleInmueble"),
+                                TipoDeInmueble = new TipoDeInmueble { Nombre = reader.GetString("TipoInmueble") },
                                 Direccion = reader.GetString("DireccionInmueble")
                             }
                         });
@@ -221,16 +220,14 @@ namespace inmobiliaria_grupo_9.Models
                         i.Nombre AS NombreInquilino,
                         i.Apellido AS ApellidoInquilino,
 
-                        inm.Tipo AS TipoInmueble,
+                        inm.ID_TipoInmueble AS IdTipoInmuebleInmueble,
+                        t.Nombre AS TipoInmueble,
                         inm.Direccion AS DireccionInmueble
 
                     FROM reserva r
-
-                    INNER JOIN inquilino i
-                        ON r.ID_Inquilino = i.ID_Inquilino
-
-                    INNER JOIN inmueble inm
-                        ON r.ID_Inmueble = inm.ID_Inmueble
+                INNER JOIN inquilino i ON r.ID_Inquilino = i.ID_Inquilino
+                INNER JOIN inmueble inm ON r.ID_Inmueble = inm.ID_Inmueble
+                INNER JOIN tipo_inmueble t ON inm.ID_TipoInmueble = t.ID_TipoInmueble
 
                     WHERE r.ID_Reserva = @id";
 
@@ -267,7 +264,8 @@ namespace inmobiliaria_grupo_9.Models
                             Inmueble = new Inmueble
                             {
                                 IdInmueble = reader.GetInt32("IdInmueble"),
-                                Tipo = reader.GetString("TipoInmueble"),
+                                IdTipoInmueble = reader.GetInt32("IdTipoInmuebleInmueble"),
+                                TipoDeInmueble = new TipoDeInmueble { Nombre = reader.GetString("TipoInmueble") },
                                 Direccion = reader.GetString("DireccionInmueble")
                             }
                         };
@@ -319,54 +317,54 @@ namespace inmobiliaria_grupo_9.Models
             return existe;
         }
         public int FinalizarReserva(int idReserva, DateTime fechaFinalizacion)
-{
-    int res = -1;
+        {
+            int res = -1;
 
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string sql = @"UPDATE reserva
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"UPDATE reserva
                        SET Finalizada = 1,
                            FechaFinalizacion = @fechaFinalizacion
                        WHERE ID_Reserva = @idReserva";
 
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            command.Parameters.AddWithValue("@fechaFinalizacion", fechaFinalizacion);
-            command.Parameters.AddWithValue("@idReserva", idReserva);
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@fechaFinalizacion", fechaFinalizacion);
+                    command.Parameters.AddWithValue("@idReserva", idReserva);
 
-            connection.Open();
-            res = command.ExecuteNonQuery();
-            connection.Close();
+                    connection.Open();
+                    res = command.ExecuteNonQuery();
+                    connection.Close();
+                }
+            }
+
+            return res;
         }
-    }
 
-    return res;
-}
-    
-    public int RenovarReserva(int idReserva, DateTime nuevaFechaHasta)
-{
-    int res = -1;
+        public int RenovarReserva(int idReserva, DateTime nuevaFechaHasta)
+        {
+            int res = -1;
 
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string sql = @"UPDATE reserva
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"UPDATE reserva
                        SET Hasta = @nuevaFechaHasta
                        WHERE ID_Reserva = @idReserva
                        AND Finalizada = 0";
 
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            command.Parameters.AddWithValue("@nuevaFechaHasta", nuevaFechaHasta);
-            command.Parameters.AddWithValue("@idReserva", idReserva);
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@nuevaFechaHasta", nuevaFechaHasta);
+                    command.Parameters.AddWithValue("@idReserva", idReserva);
 
-            connection.Open();
-            res = command.ExecuteNonQuery();
+                    connection.Open();
+                    res = command.ExecuteNonQuery();
+                }
+            }
+
+            return res;
         }
     }
+}
 
-    return res;
-}
-}
-}
-   
 

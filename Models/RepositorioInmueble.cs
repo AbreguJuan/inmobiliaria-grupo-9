@@ -17,13 +17,13 @@ namespace inmobiliaria_grupo_9.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"INSERT INTO Inmueble 
-                    (Tipo, Provincia, Localidad, Direccion, PrecioXDia, Metros_Cuadrados, Nro_Ambientes, Nro_Banios, ID_Propietario, Habilitado)
+                    (ID_TipoInmueble, Provincia, Localidad, Direccion, PrecioXDia, Metros_Cuadrados, Nro_Ambientes, Nro_Banios, ID_Propietario, Habilitado)
                     VALUES (@tipo, @provincia, @localidad, @direccion, @precio, @metros, @ambientes, @banios, @idPropietario, @habilitado);
                     SELECT LAST_INSERT_ID();";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
-                    command.Parameters.AddWithValue("@tipo", i.Tipo);
+                    command.Parameters.AddWithValue("@tipo", i.IdTipoInmueble);
                     command.Parameters.AddWithValue("@provincia", i.Provincia);
                     command.Parameters.AddWithValue("@localidad", i.Localidad);
                     command.Parameters.AddWithValue("@direccion", i.Direccion);
@@ -65,13 +65,13 @@ namespace inmobiliaria_grupo_9.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"UPDATE Inmueble SET
-                    Tipo=@tipo, Provincia=@provincia, Localidad=@localidad, Direccion=@direccion,
+                    ID_TipoInmueble=@idTipo, Provincia=@provincia, Localidad=@localidad, Direccion=@direccion,
                     PrecioXDia=@precio, Metros_Cuadrados=@metros, Nro_Ambientes=@ambientes,
                     Nro_Banios=@banios, ID_Propietario=@idPropietario, Habilitado=@habilitado
                     WHERE ID_Inmueble=@id";
                 using (var command = new MySqlCommand(sql, connection))
                 {
-                    command.Parameters.AddWithValue("@tipo", i.Tipo);
+                    command.Parameters.AddWithValue("@tipo", i.IdTipoInmueble);
                     command.Parameters.AddWithValue("@provincia", i.Provincia);
                     command.Parameters.AddWithValue("@localidad", i.Localidad);
                     command.Parameters.AddWithValue("@direccion", i.Direccion);
@@ -96,12 +96,14 @@ namespace inmobiliaria_grupo_9.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @$"
-                    SELECT i.ID_Inmueble AS IdInmueble, i.Tipo, i.Provincia, i.Localidad, i.Direccion,
-                           i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
-                           i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado,
-                           p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario
+                    SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
+                        i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
+                        i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado,
+                        p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
+                        t.Nombre AS NombreTipo
                     FROM Inmueble i
                     INNER JOIN Propietario p ON i.ID_Propietario = p.ID_Propietario
+                    INNER JOIN tipo_inmueble t ON i.ID_TipoInmueble = t.ID_TipoInmueble
                     ORDER BY i.ID_Inmueble
                     LIMIT {tamPagina} OFFSET {(paginaNro - 1) * tamPagina}";
                 using (var command = new MySqlCommand(sql, connection))
@@ -113,7 +115,12 @@ namespace inmobiliaria_grupo_9.Models
                         res.Add(new Inmueble
                         {
                             IdInmueble = reader.GetInt32("IdInmueble"),
-                            Tipo = reader.GetString("Tipo"),
+                            IdTipoInmueble = reader.GetInt32("IdTipoInmueble"),
+                            TipoDeInmueble = new TipoDeInmueble
+                            {
+                                IdTipoInmueble = reader.GetInt32("IdTipoInmueble"),
+                                Nombre = reader.GetString("NombreTipo")
+                            },
                             Provincia = reader.GetString("Provincia"),
                             Localidad = reader.GetString("Localidad"),
                             Direccion = reader.GetString("Direccion"),
@@ -159,13 +166,15 @@ namespace inmobiliaria_grupo_9.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"
-                    SELECT i.ID_Inmueble AS IdInmueble, i.Tipo, i.Provincia, i.Localidad, i.Direccion,
-                           i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
-                           i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado,
-                           p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario
+                    SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
+                        i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
+                        i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado,
+                        p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
+                        t.Nombre AS NombreTipo
                     FROM Inmueble i
-                    INNER JOIN Propietario p ON i.ID_Propietario = p.ID_Propietario 
-                    WHERE i.ID_Inmueble=@id";
+                    INNER JOIN Propietario p ON i.ID_Propietario = p.ID_Propietario
+                    INNER JOIN tipo_inmueble t ON i.ID_TipoInmueble = t.ID_TipoInmueble
+                    WHERE i.ID_Inmueble = @id";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);
@@ -176,7 +185,11 @@ namespace inmobiliaria_grupo_9.Models
                         i = new Inmueble
                         {
                             IdInmueble = reader.GetInt32("IdInmueble"),
-                            Tipo = reader.GetString("Tipo"),
+                            TipoDeInmueble = new TipoDeInmueble
+                            {
+                                IdTipoInmueble = reader.GetInt32("IdTipoInmueble"),
+                                Nombre = reader.GetString("NombreTipo")
+                            },
                             Provincia = reader.GetString("Provincia"),
                             Localidad = reader.GetString("Localidad"),
                             Direccion = reader.GetString("Direccion"),
@@ -206,13 +219,15 @@ namespace inmobiliaria_grupo_9.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"
-                    SELECT i.ID_Inmueble AS IdInmueble, i.Tipo, i.Provincia, i.Localidad, i.Direccion,
+                    SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
                         i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
                         i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado,
-                        p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario
+                        p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
+                        t.Nombre AS NombreTipo
                     FROM Inmueble i
-                    INNER JOIN Propietario p ON i.ID_Propietario = p.ID_Propietario 
-                    WHERE i.ID_Propietario=@idPropietario";
+                    INNER JOIN Propietario p ON i.ID_Propietario = p.ID_Propietario
+                    INNER JOIN tipo_inmueble t ON i.ID_TipoInmueble = t.ID_TipoInmueble
+                    WHERE i.ID_Propietario = @idPropietario";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@idPropietario", idPropietario);
@@ -223,7 +238,11 @@ namespace inmobiliaria_grupo_9.Models
                         res.Add(new Inmueble
                         {
                             IdInmueble = reader.GetInt32("IdInmueble"),
-                            Tipo = reader.GetString("Tipo"),
+                            TipoDeInmueble = new TipoDeInmueble
+                            {
+                                IdTipoInmueble = reader.GetInt32("IdTipoInmueble"),
+                                Nombre = reader.GetString("NombreTipo")
+                            },
                             Provincia = reader.GetString("Provincia"),
                             Localidad = reader.GetString("Localidad"),
                             Direccion = reader.GetString("Direccion"),

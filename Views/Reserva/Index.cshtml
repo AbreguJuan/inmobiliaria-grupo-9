@@ -38,7 +38,7 @@
                 <td>
                     @if (item.Inmueble != null)
                     {
-                        @($"{item.Inmueble.Tipo} - {item.Inmueble.Direccion}")
+                        @($"{item.Inmueble.TipoDeInmueble?.Nombre} - {item.Inmueble.Direccion}")
                     }
                 </td>
 
