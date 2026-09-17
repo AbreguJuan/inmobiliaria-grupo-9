@@ -1,0 +1,44 @@
+@model inmobiliaria_grupo_9.Models.Usuario
+
+@{
+    ViewData["Title"] = "Eliminar Usuario";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="fa-solid fa-triangle-exclamation"></i> ¿Estás seguro de eliminar este usuario?</h4>
+            </div>
+            <div class="card-body text-center">
+                <p class="text-muted mb-4">Esta acción no se puede deshacer y el usuario perderá el acceso al sistema.</p>
+                
+                <div class="mb-4">
+                    @if(!String.IsNullOrEmpty(Model.Avatar)) 
+                    {
+                        <img width="100" height="100" src="@Model.Avatar" class="rounded-circle border shadow-sm mb-3" style="object-fit: cover;" alt="Avatar" />
+                    }
+                    else
+                    {
+                        <img width="100" height="100" src="https://ui-avatars.com/api/?background=random&color=fff&rounded=true&name=@Model.Nombre+@Model.Apellido" class="rounded-circle border shadow-sm mb-3" alt="Avatar automático" />
+                    }
+                    <h5 class="fw-bold">@Model.Nombre @Model.Apellido</h5>
+                    <p class="mb-1"><i class="fa-solid fa-envelope"></i> @Model.Email</p>
+                    <p class="mb-0"><span class="badge bg-info text-dark">Rol: @Model.RolNombre</span></p>
+                </div>
+
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="IdUsuario" />
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-arrow-left"></i> Cancelar y volver
+                        </a>
+                        <button type="submit" class="btn btn-danger fw-bold">
+                            <i class="fa-solid fa-trash-can"></i> Sí, Eliminar Usuario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

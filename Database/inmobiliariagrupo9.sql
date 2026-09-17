@@ -199,6 +199,19 @@ LOCK TABLES `tipo_inmueble` WRITE;
 INSERT INTO `tipo_inmueble` VALUES (1,'Casa',1),(2,'Departamento',1),(3,'Habitacion de Hotel',1),(4,'Airbnb',0);
 /*!40000 ALTER TABLE `tipo_inmueble` ENABLE KEYS */;
 UNLOCK TABLES;
+
+DROP TABLE IF EXISTS `Usuario`;
+CREATE TABLE `Usuario` (
+    ID_Usuario INT AUTO_INCREMENT PRIMARY KEY,
+    Nombre VARCHAR(50) NOT NULL,
+    Apellido VARCHAR(50) NOT NULL,
+    Email VARCHAR(100) NOT NULL UNIQUE,
+    Clave VARCHAR(255) NOT NULL,
+    Avatar VARCHAR(255) NULL,
+    Rol INT NOT NULL
+);
+INSERT INTO `Usuario` (`ID_Usuario`,`Nombre`,`Apellido`,`Email`,`Clave`,`Avatar`,`Rol`) VALUES (1,'Administrador','Sistema','admin@mail.com','LO+JuZcDqQAU36y9RGGfGMTXSgGZeUb2ZXbf+9p+otE=',NULL,1);
+INSERT INTO `Usuario` (`ID_Usuario`,`Nombre`,`Apellido`,`Email`,`Clave`,`Avatar`,`Rol`) VALUES (2,'Elliot','Alderson','Elliotalderson@mail.com','LO+JuZcDqQAU36y9RGGfGMTXSgGZeUb2ZXbf+9p+otE=',NULL,2);
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

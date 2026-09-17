@@ -156,7 +156,50 @@ namespace inmobiliaria_grupo_9.Controllers
                 }
                 
                 u.IdUsuario = id;
+
+                var usuarioOriginal = _repositorio.ObtenerPorId(id);
+                if (usuarioOriginal == null) return NotFound();
+
+                if (string.IsNullOrEmpty(u.Clave))
+                {
+                    u.Clave = usuarioOriginal.Clave;
+                }
+                else
+                {
+                    u.Clave = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                        password: u.Clave,
+                        salt: System.Text.Encoding.ASCII.GetBytes(_configuration["Salt"] ?? "S@ltDefault123!"),
+                        prf: KeyDerivationPrf.HMACSHA1,
+                        iterationCount: 1000,
+                        numBytesRequested: 256 / 8));
+                }
+
+                if (u.AvatarFile != null)
+                {
+                    string wwwPath = _environment.WebRootPath;
+                    string path = Path.Combine(wwwPath, "Uploads", "Avatares");
+                    if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+
+                    string fileName = "avatar_" + u.IdUsuario + Path.GetExtension(u.AvatarFile.FileName);
+                    string pathCompleto = Path.Combine(path, fileName);
+                    u.Avatar = Path.Combine("/Uploads/Avatares", fileName).Replace("\\", "/");
+
+                    using (FileStream stream = new FileStream(pathCompleto, FileMode.Create))
+                    {
+                        u.AvatarFile.CopyTo(stream);
+                    }
+                }
+                else
+                {
+                    u.Avatar = usuarioOriginal.Avatar;
+                }
+
                 _repositorio.Modificacion(u);
+
+                if (currentUserId == id)
+                {
+                    return RedirectToAction("Logout");
+                }
 
                 return RedirectToAction(vista);
             }
