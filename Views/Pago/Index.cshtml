@@ -23,10 +23,22 @@
         {
             <tr>
                 <td>@item.IdPago</td>
-                <td>@item.IdReserva</td>
+
+                <td>
+                    @if (item.Reserva?.Inquilino != null)
+                    {
+                        @($"{item.Reserva.Inquilino.Nombre} {item.Reserva.Inquilino.Apellido}")
+                    }
+                    else
+                    {
+                        <span>Sin datos</span>
+                    }
+                </td>
+
                 <td>@item.Concepto</td>
                 <td>@item.FechaPago.ToString("dd/MM/yyyy")</td>
                 <td>$ @item.Importe</td>
+
                 <td>
                     @if (item.Anulado)
                     {
@@ -37,9 +49,11 @@
                         <span>Activo</span>
                     }
                 </td>
+
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.IdPago">Editar</a>
                     <span> | </span>
+
                     <a asp-action="Details" asp-route-id="@item.IdPago">Detalles</a>
 
                     @if (!item.Anulado)

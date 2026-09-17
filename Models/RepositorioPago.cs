@@ -86,39 +86,71 @@ namespace inmobiliaria_grupo_9.Models
             return res;
         }
 
-        public IList<Pago> ObtenerLista()
+       public IList<Pago> ObtenerLista()
+{
+    var lista = new List<Pago>();
+
+    using var connection = new MySqlConnection(connectionString);
+
+    string sql = @"
+        SELECT
+            p.IdPago,
+            p.IdReserva,
+            p.Concepto,
+            p.FechaPago,
+            p.Importe,
+            p.Anulado,
+            p.CreadoPor,
+            p.AnuladoPor,
+            i.ID_Inquilino,
+            i.Nombre AS InquilinoNombre,
+            i.Apellido AS InquilinoApellido
+        FROM pago p
+        INNER JOIN reserva r ON p.IdReserva = r.ID_Reserva
+        INNER JOIN inquilino i ON r.ID_Inquilino = i.ID_Inquilino
+        ORDER BY p.FechaPago DESC;";
+
+    using var command = new MySqlCommand(sql, connection);
+
+    connection.Open();
+
+    using var reader = command.ExecuteReader();
+
+    while (reader.Read())
+    {
+        lista.Add(new Pago
         {
-            var lista = new List<Pago>();
+            IdPago = reader.GetInt32("IdPago"),
+            IdReserva = reader.GetInt32("IdReserva"),
+            Concepto = reader.GetString("Concepto"),
+            FechaPago = reader.GetDateTime("FechaPago"),
+            Importe = reader.GetDecimal("Importe"),
+            Anulado = reader.GetBoolean("Anulado"),
 
-            using var connection = new MySqlConnection(connectionString);
+            CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor"))
+                ? null
+                : reader.GetInt32("CreadoPor"),
 
-            string sql = @"
-                SELECT
-                    IdPago, IdReserva, Concepto, FechaPago, Importe, Anulado, CreadoPor, AnuladoPor
-                FROM pago
-                ORDER BY FechaPago DESC;";
+            AnuladoPor = reader.IsDBNull(reader.GetOrdinal("AnuladoPor"))
+                ? null
+                : reader.GetInt32("AnuladoPor"),
 
-            using var command = new MySqlCommand(sql, connection);
-            connection.Open();
-            using var reader = command.ExecuteReader();
-
-            while (reader.Read())
+            Reserva = new Reserva
             {
-                lista.Add(new Pago
-                {
-                    IdPago = reader.GetInt32("IdPago"),
-                    IdReserva = reader.GetInt32("IdReserva"),
-                    Concepto = reader.GetString("Concepto"),
-                    FechaPago = reader.GetDateTime("FechaPago"),
-                    Importe = reader.GetDecimal("Importe"),
-                    Anulado = reader.GetBoolean("Anulado"),
-                    CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor")) ? null : reader.GetInt32("CreadoPor"),
-                    AnuladoPor = reader.IsDBNull(reader.GetOrdinal("AnuladoPor")) ? null : reader.GetInt32("AnuladoPor")
-                });
-            }
+                IdReserva = reader.GetInt32("IdReserva"),
 
-            return lista;
-        }
+                Inquilino = new Inquilino
+                {
+                    IdInquilino = reader.GetInt32("ID_Inquilino"),
+                    Nombre = reader.GetString("InquilinoNombre"),
+                    Apellido = reader.GetString("InquilinoApellido")
+                }
+            }
+        });
+    }
+
+    return lista;
+}
 
         public Pago? ObtenerPorId(int idPago)
         {
