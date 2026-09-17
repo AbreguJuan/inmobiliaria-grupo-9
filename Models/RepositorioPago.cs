@@ -86,7 +86,7 @@ namespace inmobiliaria_grupo_9.Models
             return res;
         }
 
-       public IList<Pago> ObtenerLista()
+public IList<Pago> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
 {
     var lista = new List<Pago>();
 
@@ -108,9 +108,16 @@ namespace inmobiliaria_grupo_9.Models
         FROM pago p
         INNER JOIN reserva r ON p.IdReserva = r.ID_Reserva
         INNER JOIN inquilino i ON r.ID_Inquilino = i.ID_Inquilino
-        ORDER BY p.FechaPago DESC;";
+        ORDER BY p.FechaPago DESC
+        LIMIT @tamPagina OFFSET @offset;";
 
     using var command = new MySqlCommand(sql, connection);
+
+    command.Parameters.AddWithValue("@tamPagina", tamPagina);
+    command.Parameters.AddWithValue(
+        "@offset",
+        (paginaNro - 1) * tamPagina
+    );
 
     connection.Open();
 
@@ -150,6 +157,20 @@ namespace inmobiliaria_grupo_9.Models
     }
 
     return lista;
+}
+public int ObtenerCantidad()
+{
+    using var connection =
+        new MySqlConnection(connectionString);
+
+    string sql = "SELECT COUNT(IdPago) FROM pago;";
+
+    using var command =
+        new MySqlCommand(sql, connection);
+
+    connection.Open();
+
+    return Convert.ToInt32(command.ExecuteScalar());
 }
 
         public Pago? ObtenerPorId(int idPago)

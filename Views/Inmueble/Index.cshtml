@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Inmuebles";
+
+    int paginaActual = ViewBag.PaginaActual ?? 1;
+    int totalPaginas = ViewBag.TotalPaginas ?? 1;
 }
 
 <h1>Inmuebles</h1>
@@ -26,64 +29,120 @@
 
 <form asp-action="Index" method="get" class="mb-3">
     <div class="row g-2 align-items-end">
+
         <div class="col-md-4">
             <label class="form-label">Buscar</label>
-            <input type="text" name="busqueda" class="form-control"
-                   placeholder="Provincia, localidad, dirección, tipo o propietario" value="@ViewBag.Busqueda" />
+            <input type="text"
+                   name="busqueda"
+                   class="form-control"
+                   placeholder="Provincia, localidad, dirección, tipo o propietario"
+                   value="@ViewBag.Busqueda" />
         </div>
+
         <div class="col-md-2">
             <label class="form-label">Precio</label>
             <select name="operadorPrecio" class="form-control">
                 <option value="">--</option>
-                <option value="mayor" selected="@(ViewBag.OperadorPrecio == "mayor")">Mayor a</option>
-                <option value="menor" selected="@(ViewBag.OperadorPrecio == "menor")">Menor a</option>
-                <option value="igual" selected="@(ViewBag.OperadorPrecio == "igual")">Igual a</option>
+                <option value="mayor"
+                        selected="@(ViewBag.OperadorPrecio == "mayor")">
+                    Mayor a
+                </option>
+                <option value="menor"
+                        selected="@(ViewBag.OperadorPrecio == "menor")">
+                    Menor a
+                </option>
+                <option value="igual"
+                        selected="@(ViewBag.OperadorPrecio == "igual")">
+                    Igual a
+                </option>
             </select>
         </div>
+
         <div class="col-md-2">
             <label class="form-label">Monto</label>
-            <input type="number" step="0.01" name="precio" class="form-control" value="@ViewBag.Precio" />
+            <input type="number"
+                   step="0.01"
+                   name="precio"
+                   class="form-control"
+                   value="@ViewBag.Precio" />
         </div>
+
         <div class="col-md-2">
             <label class="form-label">Ambientes (mín.)</label>
-            <input type="number" name="ambientesMinimo" class="form-control" value="@ViewBag.AmbientesMinimo" />
+            <input type="number"
+                   name="ambientesMinimo"
+                   class="form-control"
+                   value="@ViewBag.AmbientesMinimo" />
         </div>
+
         <div class="col-md-2">
             <label class="form-label">m² desde</label>
-            <input type="number" name="metrosMinimo" class="form-control" value="@ViewBag.MetrosMinimo" />
+            <input type="number"
+                   name="metrosMinimo"
+                   class="form-control"
+                   value="@ViewBag.MetrosMinimo" />
         </div>
+
         <div class="col-md-2">
             <label class="form-label">m² hasta</label>
-            <input type="number" name="metrosMaximo" class="form-control" value="@ViewBag.MetrosMaximo" />
+            <input type="number"
+                   name="metrosMaximo"
+                   class="form-control"
+                   value="@ViewBag.MetrosMaximo" />
         </div>
+
         <div class="col-md-2">
             <label class="form-label">Estado</label>
             <select name="habilitadoFiltro" class="form-control">
                 <option value="">Todos</option>
-                <option value="habilitados" selected="@(ViewBag.HabilitadoFiltro == "habilitados")">Habilitados</option>
-                <option value="deshabilitados" selected="@(ViewBag.HabilitadoFiltro == "deshabilitados")">Deshabilitados
+                <option value="habilitados"
+                        selected="@(ViewBag.HabilitadoFiltro == "habilitados")">
+                    Habilitados
+                </option>
+                <option value="deshabilitados"
+                        selected="@(ViewBag.HabilitadoFiltro == "deshabilitados")">
+                    Deshabilitados
                 </option>
             </select>
         </div>
+
         <div class="col-md-2">
             <label class="form-label">Disponible desde</label>
-            <input type="date" name="fechaDesde" class="form-control"
+            <input type="date"
+                   name="fechaDesde"
+                   class="form-control"
                    value="@(ViewBag.FechaDesde != null ? ((DateTime)ViewBag.FechaDesde).ToString("yyyy-MM-dd") : "")" />
         </div>
+
         <div class="col-md-2">
             <label class="form-label">Disponible hasta</label>
-            <input type="date" name="fechaHasta" class="form-control"
+            <input type="date"
+                   name="fechaHasta"
+                   class="form-control"
                    value="@(ViewBag.FechaHasta != null ? ((DateTime)ViewBag.FechaHasta).ToString("yyyy-MM-dd") : "")" />
         </div>
+
         <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+            <button type="submit"
+                    class="btn btn-primary w-100">
+                Buscar
+            </button>
         </div>
     </div>
 
-    @if (!string.IsNullOrWhiteSpace((string)ViewBag.Busqueda) || ViewBag.Precio != null ||
-    !string.IsNullOrWhiteSpace((string)ViewBag.HabilitadoFiltro))
+    @if (!string.IsNullOrWhiteSpace((string)ViewBag.Busqueda) ||
+         ViewBag.Precio != null ||
+         !string.IsNullOrWhiteSpace((string)ViewBag.HabilitadoFiltro) ||
+         ViewBag.AmbientesMinimo != null ||
+         ViewBag.MetrosMinimo != null ||
+         ViewBag.MetrosMaximo != null ||
+         ViewBag.FechaDesde != null ||
+         ViewBag.FechaHasta != null)
     {
-        <a asp-action="Index" class="btn btn-secondary btn-sm mt-2">Limpiar filtros</a>
+        <a asp-action="Index"
+           class="btn btn-secondary btn-sm mt-2">
+            Limpiar filtros
+        </a>
     }
 </form>
 
@@ -101,6 +160,7 @@
             <th></th>
         </tr>
     </thead>
+
     <tbody>
         @foreach (var item in Model)
         {
@@ -108,13 +168,15 @@
                 <td>
                     @if (!string.IsNullOrEmpty(item.FotoPortada))
                     {
-                        <img src="@item.FotoPortada" style="width:80px;height:60px;object-fit:cover;" />
+                        <img src="@item.FotoPortada"
+                             style="width:80px;height:60px;object-fit:cover;" />
                     }
                     else
                     {
                         <span class="text-muted">Sin foto</span>
                     }
                 </td>
+
                 <td>@item.TipoDeInmueble?.Nombre</td>
                 <td>@item.Direccion</td>
                 <td>@item.MetrosCuadrados</td>
@@ -122,12 +184,68 @@
                 <td>@item.NroBanios</td>
                 <td>$@item.PrecioXDia</td>
                 <td>@(item.Habilitado ? "Sí" : "No")</td>
+
                 <td>
-                    <a asp-action="Details" asp-route-id="@item.IdInmueble">Detalles</a> |
-                    <a asp-action="Edit" asp-route-id="@item.IdInmueble">Editar</a> |
-                    <a asp-action="Delete" asp-route-id="@item.IdInmueble">Eliminar</a>
+                    <a asp-action="Details"
+                       asp-route-id="@item.IdInmueble">
+                        Detalles
+                    </a> |
+
+                    <a asp-action="Edit"
+                       asp-route-id="@item.IdInmueble">
+                        Editar
+                    </a> |
+
+                    <a asp-action="Delete"
+                       asp-route-id="@item.IdInmueble">
+                        Eliminar
+                    </a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+@if (string.IsNullOrWhiteSpace((string)ViewBag.Busqueda) &&
+     ViewBag.Precio == null &&
+     string.IsNullOrWhiteSpace((string)ViewBag.HabilitadoFiltro) &&
+     ViewBag.AmbientesMinimo == null &&
+     ViewBag.MetrosMinimo == null &&
+     ViewBag.MetrosMaximo == null &&
+     ViewBag.FechaDesde == null &&
+     ViewBag.FechaHasta == null &&
+     totalPaginas > 1)
+{
+    <nav>
+        <ul class="pagination">
+
+            <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-paginaNro="@(paginaActual - 1)">
+                    Anterior
+                </a>
+            </li>
+
+            @for (int i = 1; i <= totalPaginas; i++)
+            {
+                <li class="page-item @(i == paginaActual ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-paginaNro="@i">
+                        @i
+                    </a>
+                </li>
+            }
+
+            <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-paginaNro="@(paginaActual + 1)">
+                    Siguiente
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+}

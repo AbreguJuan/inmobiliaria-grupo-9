@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Reservas";
+
+    int paginaActual = ViewBag.PaginaActual ?? 1;
+    int totalPaginas = ViewBag.TotalPaginas ?? 1;
 }
 
 <h1>Reservas</h1>
@@ -64,22 +67,57 @@
                        asp-route-idReserva="@item.IdReserva">Agregar pago</a> |
 
                     @if (!item.Finalizada)
-{
-    <a asp-action="Renovar"
-       asp-route-id="@item.IdReserva">Renovar</a>
+                    {
+                        <a asp-action="Renovar"
+                           asp-route-id="@item.IdReserva">Renovar</a>
 
-    <span> | </span>
+                        <span> | </span>
 
-    <a asp-action="Finalizar"
-       asp-route-id="@item.IdReserva">Finalizar</a>
-}
-else
-{
-    <span>Finalizada</span>
-}
-              
+                        <a asp-action="Finalizar"
+                           asp-route-id="@item.IdReserva">Finalizar</a>
+                    }
+                    else
+                    {
+                        <span>Finalizada</span>
+                    }
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+@if (totalPaginas > 1)
+{
+    <nav>
+        <ul class="pagination">
+
+            <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-pagina="@(paginaActual - 1)">
+                    Anterior
+                </a>
+            </li>
+
+            @for (int i = 1; i <= totalPaginas; i++)
+            {
+                <li class="page-item @(i == paginaActual ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-pagina="@i">
+                        @i
+                    </a>
+                </li>
+            }
+
+            <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-pagina="@(paginaActual + 1)">
+                    Siguiente
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+}

@@ -12,33 +12,64 @@ namespace inmobiliaria_grupo_9.Controllers
             _repositorio = repositorio;
         }
 
-        public IActionResult Index(string busqueda, string habilitadoFiltro)
+       public IActionResult Index(
+    string busqueda,
+    string habilitadoFiltro,
+    int pagina = 1)
+{
+    try
+    {
+        const int tamPagina = 5;
+
+        bool? habilitado = habilitadoFiltro switch
         {
-            try
-            {
-                bool? habilitado = habilitadoFiltro switch
-                {
-                    "habilitados" => true,
-                    "deshabilitados" => false,
-                    _ => null
-                };
+            "habilitados" => true,
+            "deshabilitados" => false,
+            _ => null
+        };
 
-                bool hayFiltros = !string.IsNullOrWhiteSpace(busqueda) || habilitado.HasValue;
+        bool hayFiltros =
+            !string.IsNullOrWhiteSpace(busqueda) ||
+            habilitado.HasValue;
 
-                var tipos = hayFiltros
-                    ? _repositorio.Buscar(busqueda, habilitado)
-                    : _repositorio.ObtenerLista(1, 1000);
+        IList<TipoDeInmueble> tipos;
 
-                ViewBag.Busqueda = busqueda;
-                ViewBag.HabilitadoFiltro = habilitadoFiltro;
-                return View(tipos);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al obtener tipos de inmueble: {ex.Message}");
-                return View(new List<TipoDeInmueble>());
-            }
+        if (hayFiltros)
+        {
+            tipos = _repositorio.Buscar(busqueda, habilitado);
+            ViewBag.TotalPaginas = 1;
         }
+        else
+        {
+            int totalRegistros = _repositorio.ObtenerCantidad();
+
+            int totalPaginas = (int)Math.Ceiling(
+                (double)totalRegistros / tamPagina
+            );
+
+            tipos = _repositorio.ObtenerLista(
+                pagina,
+                tamPagina
+            );
+
+            ViewBag.TotalPaginas = totalPaginas;
+        }
+
+        ViewBag.PaginaActual = pagina;
+        ViewBag.Busqueda = busqueda;
+        ViewBag.HabilitadoFiltro = habilitadoFiltro;
+
+        return View(tipos);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(
+            $"Error al obtener tipos de inmueble: {ex.Message}"
+        );
+
+        return View(new List<TipoDeInmueble>());
+    }
+}
 
         public IActionResult Details(int id)
         {

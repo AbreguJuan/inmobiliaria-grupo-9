@@ -8,7 +8,12 @@ namespace inmobiliaria_grupo_9.Models
 
         int Anular(int idPago, int idUsuario);
 
-        IList<Pago> ObtenerLista();
+        IList<Pago> ObtenerLista(
+            int paginaNro = 1,
+            int tamPagina = 10
+        );
+
+        int ObtenerCantidad();
 
         Pago? ObtenerPorId(int idPago);
 

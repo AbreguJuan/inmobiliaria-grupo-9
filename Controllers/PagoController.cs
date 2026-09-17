@@ -13,11 +13,38 @@ namespace inmobiliaria_grupo_9.Controllers
             this.repositorioPago = repositorioPago;
         }
 
-        public IActionResult Index()
-        {
-            var lista = repositorioPago.ObtenerLista();
-            return View(lista);
-        }
+       public IActionResult Index(int pagina = 1)
+{
+    try
+    {
+        const int tamPagina = 5;
+
+        int totalRegistros =
+            repositorioPago.ObtenerCantidad();
+
+        int totalPaginas = (int)Math.Ceiling(
+            (double)totalRegistros / tamPagina
+        );
+
+        var lista = repositorioPago.ObtenerLista(
+            pagina,
+            tamPagina
+        );
+
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
+
+        return View(lista);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(
+            $"Error al obtener pagos: {ex.Message}"
+        );
+
+        return View(new List<Pago>());
+    }
+}
 
         public IActionResult Details(int id)
 {

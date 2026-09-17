@@ -46,40 +46,102 @@ namespace inmobiliaria_grupo_9.Controllers
             return $"/images/inmuebles/{nombreArchivo}";
         }
 
-        public ActionResult Index(string busqueda, decimal? precio, string operadorPrecio, string habilitadoFiltro,
-            int? ambientesMinimo, decimal? metrosMinimo, decimal? metrosMaximo,
-            DateTime? fechaDesde, DateTime? fechaHasta,
-            int paginaNro = 1, int tamPagina = 10)
+     public ActionResult Index(
+    string busqueda,
+    decimal? precio,
+    string operadorPrecio,
+    string habilitadoFiltro,
+    int? ambientesMinimo,
+    decimal? metrosMinimo,
+    decimal? metrosMaximo,
+    DateTime? fechaDesde,
+    DateTime? fechaHasta,
+    int paginaNro = 1)
+{
+    try
+    {
+        const int tamPagina = 5;
+
+        bool? habilitado = habilitadoFiltro switch
         {
-            bool? habilitado = habilitadoFiltro switch
-            {
-                "habilitados" => true,
-                "deshabilitados" => false,
-                _ => null
-            };
+            "habilitados" => true,
+            "deshabilitados" => false,
+            _ => null
+        };
 
-            bool hayFiltros = !string.IsNullOrWhiteSpace(busqueda) || precio.HasValue || habilitado.HasValue
-                || ambientesMinimo.HasValue || metrosMinimo.HasValue || metrosMaximo.HasValue
-                || (fechaDesde.HasValue && fechaHasta.HasValue);
+        bool hayFiltros =
+            !string.IsNullOrWhiteSpace(busqueda) ||
+            precio.HasValue ||
+            habilitado.HasValue ||
+            ambientesMinimo.HasValue ||
+            metrosMinimo.HasValue ||
+            metrosMaximo.HasValue ||
+            (fechaDesde.HasValue && fechaHasta.HasValue);
 
-            IList<Inmueble> lista = hayFiltros
-                ? _repositorioInmueble.Buscar(busqueda, precio, operadorPrecio, habilitado, ambientesMinimo, metrosMinimo, metrosMaximo, fechaDesde, fechaHasta)
-                : _repositorioInmueble.ObtenerLista(paginaNro, tamPagina);
+        IList<Inmueble> lista;
 
-            ViewBag.Busqueda = busqueda;
-            ViewBag.Precio = precio;
-            ViewBag.OperadorPrecio = operadorPrecio;
-            ViewBag.HabilitadoFiltro = habilitadoFiltro;
-            ViewBag.AmbientesMinimo = ambientesMinimo;
-            ViewBag.MetrosMinimo = metrosMinimo;
-            ViewBag.MetrosMaximo = metrosMaximo;
-            ViewBag.FechaDesde = fechaDesde;
-            ViewBag.FechaHasta = fechaHasta;
+        if (hayFiltros)
+        {
+            lista = _repositorioInmueble.Buscar(
+                busqueda,
+                precio,
+                operadorPrecio,
+                habilitado,
+                ambientesMinimo,
+                metrosMinimo,
+                metrosMaximo,
+                fechaDesde,
+                fechaHasta
+            );
 
-            if (TempData.ContainsKey("Mensaje")) ViewBag.Mensaje = TempData["Mensaje"];
-            if (TempData.ContainsKey("Error")) ViewBag.Error = TempData["Error"];
-            return View(lista);
+            ViewBag.TotalPaginas = 1;
         }
+        else
+        {
+            int totalRegistros =
+                _repositorioInmueble.ObtenerCantidad();
+
+            int totalPaginas = (int)Math.Ceiling(
+                (double)totalRegistros / tamPagina
+            );
+
+            lista = _repositorioInmueble.ObtenerLista(
+                paginaNro,
+                tamPagina
+            );
+
+            ViewBag.TotalPaginas = totalPaginas;
+        }
+
+        ViewBag.PaginaActual = paginaNro;
+
+        ViewBag.Busqueda = busqueda;
+        ViewBag.Precio = precio;
+        ViewBag.OperadorPrecio = operadorPrecio;
+        ViewBag.HabilitadoFiltro = habilitadoFiltro;
+        ViewBag.AmbientesMinimo = ambientesMinimo;
+        ViewBag.MetrosMinimo = metrosMinimo;
+        ViewBag.MetrosMaximo = metrosMaximo;
+        ViewBag.FechaDesde = fechaDesde;
+        ViewBag.FechaHasta = fechaHasta;
+
+        if (TempData.ContainsKey("Mensaje"))
+            ViewBag.Mensaje = TempData["Mensaje"];
+
+        if (TempData.ContainsKey("Error"))
+            ViewBag.Error = TempData["Error"];
+
+        return View(lista);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(
+            $"Error al obtener inmuebles: {ex.Message}"
+        );
+
+        return View(new List<Inmueble>());
+    }
+}
 
         public ActionResult Details(int id)
         {

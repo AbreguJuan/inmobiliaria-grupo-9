@@ -40,19 +40,34 @@ namespace inmobiliaria_grupo_9.Controllers
         }
 
         // GET: Reserva
-        public IActionResult Index()
-        {
-            try
-            {
-                var reservas = _repositorioReserva.ObtenerLista();
-                return View(reservas);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al obtener reservas: {ex.Message}");
-                return View(new List<Reserva>());
-            }
-        }
+       public IActionResult Index(int pagina = 1)
+{
+    try
+    {
+        const int tamPagina = 5;
+
+        int totalRegistros = _repositorioReserva.ObtenerCantidad();
+
+        int totalPaginas = (int)Math.Ceiling(
+            (double)totalRegistros / tamPagina
+        );
+
+        var reservas = _repositorioReserva.ObtenerLista(
+            pagina,
+            tamPagina
+        );
+
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
+
+        return View(reservas);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al obtener reservas: {ex.Message}");
+        return View(new List<Reserva>());
+    }
+}
 
         // GET: Reserva/Details/5
         public IActionResult Details(int id)

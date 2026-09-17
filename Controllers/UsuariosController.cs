@@ -32,11 +32,35 @@ namespace inmobiliaria_grupo_9.Controllers
 
         // GET: Usuarios
         [Authorize(Policy = "Administrador")]
-        public ActionResult Index(int pagina = 1)
-        {
-            var usuarios = _repositorio.ObtenerLista(pagina);
-            return View(usuarios);
-        }
+public ActionResult Index(int pagina = 1)
+{
+    try
+    {
+        const int tamPagina = 5;
+
+        int totalRegistros = _repositorio.ObtenerCantidad();
+
+        int totalPaginas = (int)Math.Ceiling(
+            (double)totalRegistros / tamPagina
+        );
+
+        var usuarios = _repositorio.ObtenerLista(
+            pagina,
+            tamPagina
+        );
+
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
+
+        return View(usuarios);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error al obtener usuarios");
+
+        return View(new List<Usuario>());
+    }
+}
 
         // GET: Usuarios/Details/5
         [Authorize(Policy = "Administrador")]
