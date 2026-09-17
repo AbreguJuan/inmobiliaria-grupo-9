@@ -16,11 +16,22 @@ namespace inmobiliaria_grupo_9.Controllers
         }
 
         // GET: Inquilino
-        public IActionResult Index()
+        public IActionResult Index(string busqueda)
         {
             try
             {
-                var inquilinos = _repositorioInquilino.ObtenerLista();
+                IList<Inquilino> inquilinos;
+
+                if (!string.IsNullOrWhiteSpace(busqueda))
+                {
+                    inquilinos = _repositorioInquilino.Buscar(busqueda);
+                }
+                else
+                {
+                    inquilinos = _repositorioInquilino.ObtenerLista();
+                }
+
+                ViewBag.Busqueda = busqueda;
                 return View(inquilinos);
             }
             catch (Exception ex)

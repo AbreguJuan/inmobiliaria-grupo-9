@@ -48,6 +48,11 @@ namespace inmobiliaria_grupo_9.Models
 
         public bool Habilitado { get; set; } = true;
 
+        [Display(Name = "Foto de portada")]
+        public string? FotoPortada { get; set; }
+
+        public IList<ImagenInmueble> Imagenes { get; set; } = new List<ImagenInmueble>();
+
         public override string ToString()
         {
             return $"{TipoDeInmueble?.Nombre} - {Direccion} ({Localidad})";

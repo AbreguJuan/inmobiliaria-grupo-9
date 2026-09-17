@@ -12,11 +12,25 @@ namespace inmobiliaria_grupo_9.Controllers
             _repositorio = repositorio;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string busqueda, string habilitadoFiltro)
         {
             try
             {
-                var tipos = _repositorio.ObtenerLista(1, 1000);
+                bool? habilitado = habilitadoFiltro switch
+                {
+                    "habilitados" => true,
+                    "deshabilitados" => false,
+                    _ => null
+                };
+
+                bool hayFiltros = !string.IsNullOrWhiteSpace(busqueda) || habilitado.HasValue;
+
+                var tipos = hayFiltros
+                    ? _repositorio.Buscar(busqueda, habilitado)
+                    : _repositorio.ObtenerLista(1, 1000);
+
+                ViewBag.Busqueda = busqueda;
+                ViewBag.HabilitadoFiltro = habilitadoFiltro;
                 return View(tipos);
             }
             catch (Exception ex)

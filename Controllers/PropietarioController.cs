@@ -16,11 +16,22 @@ namespace inmobiliaria_grupo_9.Controllers
         }
 
         // GET: Propietario
-        public IActionResult Index()
+        public IActionResult Index(string busqueda)
         {
             try
             {
-                var propietarios = _repositorioPropietario.ObtenerLista();
+                IList<Propietario> propietarios;
+
+                if (!string.IsNullOrWhiteSpace(busqueda))
+                {
+                    propietarios = _repositorioPropietario.Buscar(busqueda);
+                }
+                else
+                {
+                    propietarios = _repositorioPropietario.ObtenerLista(1, 1000);
+                }
+
+                ViewBag.Busqueda = busqueda;
                 return View(propietarios);
             }
             catch (Exception ex)

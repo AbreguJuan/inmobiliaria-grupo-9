@@ -157,5 +157,48 @@ namespace inmobiliaria_grupo_9.Models
             }
             return res;
         }
+
+        public IList<TipoDeInmueble> Buscar(string? texto, bool? habilitado = null)
+        {
+            var res = new List<TipoDeInmueble>();
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                var command = new MySqlCommand { Connection = connection };
+                var condiciones = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(texto))
+                {
+                    condiciones.Add("Nombre LIKE @texto");
+                    command.Parameters.AddWithValue("@texto", $"%{texto}%");
+                }
+
+                if (habilitado.HasValue)
+                {
+                    condiciones.Add("Habilitado = @habilitado");
+                    command.Parameters.AddWithValue("@habilitado", habilitado.Value);
+                }
+
+                string where = condiciones.Count > 0 ? "WHERE " + string.Join(" AND ", condiciones) : "";
+
+                command.CommandText = $@"SELECT ID_TipoInmueble AS IdTipoInmueble, Nombre, Habilitado
+            FROM tipo_inmueble
+            {where}
+            ORDER BY Nombre";
+
+                connection.Open();
+                var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    res.Add(new TipoDeInmueble
+                    {
+                        IdTipoInmueble = reader.GetInt32("IdTipoInmueble"),
+                        Nombre = reader.GetString("Nombre"),
+                        Habilitado = reader.GetBoolean("Habilitado"),
+                    });
+                }
+                connection.Close();
+            }
+            return res;
+        }
     }
 }

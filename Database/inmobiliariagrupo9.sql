@@ -1,5 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `inmobiliariagrupo9` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `inmobiliariagrupo9`;
 -- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
 --
 -- Host: localhost    Database: inmobiliariagrupo9
@@ -16,6 +14,33 @@ USE `inmobiliariagrupo9`;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `imageninmueble`
+--
+
+DROP TABLE IF EXISTS `imageninmueble`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `imageninmueble` (
+  `ID_Imagen` int NOT NULL AUTO_INCREMENT,
+  `ID_Inmueble` int NOT NULL,
+  `Url` varchar(255) NOT NULL,
+  PRIMARY KEY (`ID_Imagen`),
+  KEY `ID_Inmueble_idx` (`ID_Inmueble`),
+  CONSTRAINT `FK_ImagenInmueble_Inmueble` FOREIGN KEY (`ID_Inmueble`) REFERENCES `inmueble` (`ID_Inmueble`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `imageninmueble`
+--
+
+LOCK TABLES `imageninmueble` WRITE;
+/*!40000 ALTER TABLE `imageninmueble` DISABLE KEYS */;
+INSERT INTO `imageninmueble` VALUES (3,8,'/images/inmuebles/06b22843-fd9f-4f9a-88bf-389a417ba649.webp'),(4,8,'/images/inmuebles/fca27c6e-21e6-4945-b61d-c90992ba1092.jpg'),(5,8,'/images/inmuebles/a87528dd-cc12-45aa-a663-f898a613538a.jpg');
+/*!40000 ALTER TABLE `imageninmueble` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `inmueble`
@@ -36,12 +61,13 @@ CREATE TABLE `inmueble` (
   `Nro_Banios` int NOT NULL,
   `ID_Propietario` int NOT NULL,
   `Habilitado` tinyint NOT NULL,
+  `FotoPortada` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`ID_Inmueble`),
   KEY `ID_Propietario_idx` (`ID_Propietario`),
   KEY `ID_TipoInmueble_idx` (`ID_TipoInmueble`),
   CONSTRAINT `ID_Propietario` FOREIGN KEY (`ID_Propietario`) REFERENCES `propietario` (`ID_Propietario`),
   CONSTRAINT `ID_TipoInmueble` FOREIGN KEY (`ID_TipoInmueble`) REFERENCES `tipo_inmueble` (`ID_TipoInmueble`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -50,7 +76,7 @@ CREATE TABLE `inmueble` (
 
 LOCK TABLES `inmueble` WRITE;
 /*!40000 ALTER TABLE `inmueble` DISABLE KEYS */;
-INSERT INTO `inmueble` VALUES (1,2,'Buenos Aires','Palermo','Av. Santa Fe 1234',5000,45,2,1,1,1),(2,3,'San Luis','Merlo','Av. Siempre Saa',10000,30,2,1,6,1),(3,1,'Santiago del Estero','Capital','Av. Juan Domingo Peron',6000,26,2,1,6,0),(4,1,'Tucuman','Tucuman','Cordoba 256',7000,30,3,1,3,1);
+INSERT INTO `inmueble` VALUES (1,2,'Buenos Aires','Palermo','Av. Santa Fe 1234',5000,45,2,1,1,1,NULL),(2,3,'San Luis','Merlo','Av. Siempre Saa',10000,30,2,1,6,1,NULL),(3,1,'Santiago del Estero','Capital','Av. Juan Domingo Peron',6000,26,2,1,6,0,NULL),(4,1,'Tucuman','Tucuman','Cordoba 256',7000,30,3,1,3,1,NULL),(8,1,'La Pampa','Santa Rosa','Francia 123',7000,45,2,1,6,1,'/images/inmuebles/eb43844d-75f1-44a9-8fbf-ca0d3ef174cc.jpg');
 /*!40000 ALTER TABLE `inmueble` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -69,7 +95,7 @@ CREATE TABLE `inquilino` (
   `Telefono` varchar(45) NOT NULL,
   `Email` varchar(45) NOT NULL,
   PRIMARY KEY (`ID_Inquilino`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -78,7 +104,7 @@ CREATE TABLE `inquilino` (
 
 LOCK TABLES `inquilino` WRITE;
 /*!40000 ALTER TABLE `inquilino` DISABLE KEYS */;
-INSERT INTO `inquilino` VALUES (1,'Pedro','Montenegro','25784235','3254698745','montenegropedro@mail.com'),(2,'Maria','Antonieta','25486325','3241794648','antonietamaria@mail.com'),(3,'Milagros','Alfaro','45765345','2664037410','milagrosalfaro225@gmail.com'),(4,'das','dsa','dsa','dsa','dsa@dsa.com');
+INSERT INTO `inquilino` VALUES (1,'Pedro','Montenegro','25784235','3254698745','montenegropedro@mail.com'),(2,'Maria','Antonieta','25486325','3241794648','antonietamaria@mail.com'),(3,'Milagros','Alfaro','45765345','2664037410','milagrosalfaro225@gmail.com'),(4,'das','dsa','dsa','dsa','dsa@dsa.com'),(5,'Maria','Del Carmen','58463254','54785239954','delcarmenmaria@mail.com');
 /*!40000 ALTER TABLE `inquilino` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -128,7 +154,7 @@ CREATE TABLE `propietario` (
   `Email` varchar(45) NOT NULL,
   `Clave` varchar(45) NOT NULL,
   PRIMARY KEY (`ID_Propietario`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -137,7 +163,7 @@ CREATE TABLE `propietario` (
 
 LOCK TABLES `propietario` WRITE;
 /*!40000 ALTER TABLE `propietario` DISABLE KEYS */;
-INSERT INTO `propietario` VALUES (1,'Juan','Perez','30111222','1122334455','juan.perez@mail.com','1234'),(2,'Maria','Gomez','28222333','1133445566','maria.gomez@mail.com','1234'),(3,'Carlos','Lopez','25333444','1144556677','carlos.lopez@mail.com','1234'),(6,'Lucas','Rodrigaño','45862135','4567135764','lucarodrigano@mail.com','1234'),(12,'Milagros Modificado','gomez','4566666','2665888888','prueba5@gmail.com','12345'),(13,'asdfsafd','asdfasdf','asdfasdf','asdfasdf','asdasd@mail.com','asd');
+INSERT INTO `propietario` VALUES (1,'Juan','Perez','30111222','1122334455','juan.perez@mail.com','1234'),(2,'Maria','Gomez','28222333','1133445566','maria.gomez@mail.com','1234'),(3,'Carlos','Lopez','25333444','1144556677','carlos.lopez@mail.com','1234'),(6,'Lucas','Rodrigaño','45862135','4567135764','lucarodrigano@mail.com','1234'),(12,'Milagros Modificado','gomez','4566666','2665888888','prueba5@gmail.com','12345'),(13,'asdfsafd','asdfasdf','asdfasdf','asdfasdf','asdasd@mail.com','asd'),(14,'Juan','Abregu','58462356','564258753','abregujuan@mail.com','1234');
 /*!40000 ALTER TABLE `propietario` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -200,18 +226,35 @@ INSERT INTO `tipo_inmueble` VALUES (1,'Casa',1),(2,'Departamento',1),(3,'Habitac
 /*!40000 ALTER TABLE `tipo_inmueble` ENABLE KEYS */;
 UNLOCK TABLES;
 
-DROP TABLE IF EXISTS `Usuario`;
-CREATE TABLE `Usuario` (
-    ID_Usuario INT AUTO_INCREMENT PRIMARY KEY,
-    Nombre VARCHAR(50) NOT NULL,
-    Apellido VARCHAR(50) NOT NULL,
-    Email VARCHAR(100) NOT NULL UNIQUE,
-    Clave VARCHAR(255) NOT NULL,
-    Avatar VARCHAR(255) NULL,
-    Rol INT NOT NULL
-);
-INSERT INTO `Usuario` (`ID_Usuario`,`Nombre`,`Apellido`,`Email`,`Clave`,`Avatar`,`Rol`) VALUES (1,'Administrador','Sistema','admin@mail.com','LO+JuZcDqQAU36y9RGGfGMTXSgGZeUb2ZXbf+9p+otE=',NULL,1);
-INSERT INTO `Usuario` (`ID_Usuario`,`Nombre`,`Apellido`,`Email`,`Clave`,`Avatar`,`Rol`) VALUES (2,'Elliot','Alderson','Elliotalderson@mail.com','LO+JuZcDqQAU36y9RGGfGMTXSgGZeUb2ZXbf+9p+otE=',NULL,2);
+--
+-- Table structure for table `usuario`
+--
+
+DROP TABLE IF EXISTS `usuario`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usuario` (
+  `ID_Usuario` int NOT NULL AUTO_INCREMENT,
+  `Nombre` varchar(50) NOT NULL,
+  `Apellido` varchar(50) NOT NULL,
+  `Email` varchar(100) NOT NULL,
+  `Clave` varchar(255) NOT NULL,
+  `Avatar` varchar(255) DEFAULT NULL,
+  `Rol` int NOT NULL,
+  PRIMARY KEY (`ID_Usuario`),
+  UNIQUE KEY `Email` (`Email`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuario`
+--
+
+LOCK TABLES `usuario` WRITE;
+/*!40000 ALTER TABLE `usuario` DISABLE KEYS */;
+INSERT INTO `usuario` VALUES (1,'Administrador','Sistema','admin@mail.com','LO+JuZcDqQAU36y9RGGfGMTXSgGZeUb2ZXbf+9p+otE=','/Uploads/Avatares/avatar_1.jpg',1),(2,'Elliot','Alderson','Elliotalderson@mail.com','LO+JuZcDqQAU36y9RGGfGMTXSgGZeUb2ZXbf+9p+otE=','/Uploads/Avatares/avatar_2.jpg',2);
+/*!40000 ALTER TABLE `usuario` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -222,4 +265,4 @@ INSERT INTO `Usuario` (`ID_Usuario`,`Nombre`,`Apellido`,`Email`,`Clave`,`Avatar`
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-15 19:52:19
+-- Dump completed on 2026-09-17  7:13:29

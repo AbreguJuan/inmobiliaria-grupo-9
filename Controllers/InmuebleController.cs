@@ -10,20 +10,65 @@ namespace inmobiliaria_grupo_9.Controllers
         private readonly IRepositorioInmueble _repositorioInmueble;
         private readonly IRepositorioPropietario _repositorioPropietario;
         private readonly IRepositorioTipoDeInmueble _repositorioTipoDeInmueble;
+        private readonly IRepositorioImagenInmueble _repositorioImagen;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public InmuebleController(
             IRepositorioInmueble repositorioInmueble,
             IRepositorioPropietario repositorioPropietario,
-            IRepositorioTipoDeInmueble repositorioTipoDeInmueble)
+            IRepositorioTipoDeInmueble repositorioTipoDeInmueble,
+            IRepositorioImagenInmueble repositorioImagen,
+            IWebHostEnvironment webHostEnvironment)
         {
             _repositorioInmueble = repositorioInmueble;
             _repositorioPropietario = repositorioPropietario;
             _repositorioTipoDeInmueble = repositorioTipoDeInmueble;
+            _repositorioImagen = repositorioImagen;
+            _webHostEnvironment = webHostEnvironment;
         }
 
-        public ActionResult Index(int paginaNro = 1, int tamPagina = 10)
+        private string GuardarArchivo(IFormFile archivo)
         {
-            var lista = _repositorioInmueble.ObtenerLista(paginaNro, tamPagina);
+            string carpeta = Path.Combine(_webHostEnvironment.WebRootPath, "images", "inmuebles");
+            Directory.CreateDirectory(carpeta);
+
+            string nombreArchivo = $"{Guid.NewGuid()}{Path.GetExtension(archivo.FileName)}";
+            string rutaFisica = Path.Combine(carpeta, nombreArchivo);
+
+            using (var stream = new FileStream(rutaFisica, FileMode.Create))
+            {
+                archivo.CopyTo(stream);
+            }
+
+            return $"/images/inmuebles/{nombreArchivo}";
+        }
+
+        public ActionResult Index(string busqueda, decimal? precio, string operadorPrecio, string habilitadoFiltro,
+            int? ambientesMinimo, decimal? metrosMinimo, decimal? metrosMaximo,
+            int paginaNro = 1, int tamPagina = 10)
+        {
+            bool? habilitado = habilitadoFiltro switch
+            {
+                "habilitados" => true,
+                "deshabilitados" => false,
+                _ => null
+            };
+
+            bool hayFiltros = !string.IsNullOrWhiteSpace(busqueda) || precio.HasValue || habilitado.HasValue
+                || ambientesMinimo.HasValue || metrosMinimo.HasValue || metrosMaximo.HasValue;
+
+            IList<Inmueble> lista = hayFiltros
+                ? _repositorioInmueble.Buscar(busqueda, precio, operadorPrecio, habilitado, ambientesMinimo, metrosMinimo, metrosMaximo)
+                : _repositorioInmueble.ObtenerLista(paginaNro, tamPagina);
+
+            ViewBag.Busqueda = busqueda;
+            ViewBag.Precio = precio;
+            ViewBag.OperadorPrecio = operadorPrecio;
+            ViewBag.HabilitadoFiltro = habilitadoFiltro;
+            ViewBag.AmbientesMinimo = ambientesMinimo;
+            ViewBag.MetrosMinimo = metrosMinimo;
+            ViewBag.MetrosMaximo = metrosMaximo;
+
             if (TempData.ContainsKey("Mensaje")) ViewBag.Mensaje = TempData["Mensaje"];
             if (TempData.ContainsKey("Error")) ViewBag.Error = TempData["Error"];
             return View(lista);
@@ -33,6 +78,12 @@ namespace inmobiliaria_grupo_9.Controllers
         {
             var entidad = id == 0 ? new Inmueble() : _repositorioInmueble.ObtenerPorId(id);
             if (entidad == null) return NotFound();
+
+            if (id != 0)
+            {
+                entidad.Imagenes = _repositorioImagen.ObtenerPorInmueble(id);
+            }
+
             return View(entidad);
         }
 
@@ -53,24 +104,42 @@ namespace inmobiliaria_grupo_9.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Inmueble entidad)
+        public ActionResult Create(Inmueble entidad, IFormFile? fotoPortada, List<IFormFile>? fotosGaleria)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
+                    if (fotoPortada != null)
+                    {
+                        entidad.FotoPortada = GuardarArchivo(fotoPortada);
+                    }
+
                     _repositorioInmueble.Alta(entidad);
+
+                    if (fotosGaleria != null)
+                    {
+                        foreach (var foto in fotosGaleria)
+                        {
+                            if (foto.Length > 0)
+                            {
+                                string url = GuardarArchivo(foto);
+                                _repositorioImagen.Alta(new ImagenInmueble { IdInmueble = entidad.IdInmueble, Url = url });
+                            }
+                        }
+                    }
+
                     TempData["Mensaje"] = "Inmueble creado correctamente";
                     return RedirectToAction(nameof(Index));
                 }
                 ViewBag.Propietarios = _repositorioPropietario.ObtenerLista(1, 100);
-                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 100).Where(t => t.Habilitado).ToList();
+                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 1000).Where(t => t.Habilitado).ToList();
                 return View(entidad);
             }
             catch (Exception ex)
             {
                 ViewBag.Propietarios = _repositorioPropietario.ObtenerLista(1, 100);
-                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 100).Where(t => t.Habilitado).ToList();
+                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 1000).Where(t => t.Habilitado).ToList();
                 ViewBag.Error = ex.Message;
                 return View(entidad);
             }
@@ -88,25 +157,48 @@ namespace inmobiliaria_grupo_9.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, Inmueble entidad)
+        public ActionResult Edit(int id, Inmueble entidad, IFormFile? fotoPortada, List<IFormFile>? fotosGaleria)
         {
             try
             {
                 entidad.IdInmueble = id;
                 if (ModelState.IsValid)
                 {
+                    if (fotoPortada != null)
+                    {
+                        entidad.FotoPortada = GuardarArchivo(fotoPortada);
+                    }
+                    else
+                    {
+                        var existente = _repositorioInmueble.ObtenerPorId(id);
+                        entidad.FotoPortada = existente?.FotoPortada;
+                    }
+
                     _repositorioInmueble.Modificacion(entidad);
+
+                    if (fotosGaleria != null)
+                    {
+                        foreach (var foto in fotosGaleria)
+                        {
+                            if (foto.Length > 0)
+                            {
+                                string url = GuardarArchivo(foto);
+                                _repositorioImagen.Alta(new ImagenInmueble { IdInmueble = id, Url = url });
+                            }
+                        }
+                    }
+
                     TempData["Mensaje"] = "Inmueble modificado correctamente";
                     return RedirectToAction(nameof(Index));
                 }
                 ViewBag.Propietarios = _repositorioPropietario.ObtenerLista(1, 100);
-                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 100).Where(t => t.Habilitado).ToList();
+                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 1000).Where(t => t.Habilitado).ToList();
                 return View(entidad);
             }
             catch (Exception ex)
             {
                 ViewBag.Propietarios = _repositorioPropietario.ObtenerLista(1, 100);
-                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 100).Where(t => t.Habilitado).ToList();
+                ViewBag.Tipos = _repositorioTipoDeInmueble.ObtenerLista(1, 1000).Where(t => t.Habilitado).ToList();
                 ViewBag.Error = ex.Message;
                 return View(entidad);
             }
@@ -141,6 +233,14 @@ namespace inmobiliaria_grupo_9.Controllers
         {
             var lista = _repositorioInmueble.BuscarPorPropietario(id);
             return View("Index", lista);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EliminarImagen(int idImagen, int idInmueble)
+        {
+            _repositorioImagen.Baja(idImagen);
+            return RedirectToAction(nameof(Details), new { id = idInmueble });
         }
     }
 }

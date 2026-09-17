@@ -23,7 +23,7 @@ namespace inmobiliaria_grupo_9.Models
                     (Nombre, Apellido, DNI, Telefono, Email, Clave)
                     VALUES (@nombre, @apellido, @dni, @telefono, @email, @clave);
                     SELECT LAST_INSERT_ID();"; // Función de MySQL
-                    
+
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
@@ -238,6 +238,43 @@ namespace inmobiliaria_grupo_9.Models
                             Clave = reader.GetString("Clave"),
                         };
                         res.Add(p);
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
+        }
+
+        public IList<Propietario> Buscar(string texto)
+        {
+            var res = new List<Propietario>();
+            texto = "%" + texto + "%";
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT ID_Propietario AS IdPropietario, Nombre, Apellido, DNI, Telefono, Email, Clave
+            FROM Propietario
+            WHERE Nombre LIKE @texto
+               OR Apellido LIKE @texto
+               OR DNI LIKE @texto
+               OR Telefono LIKE @texto
+               OR Email LIKE @texto";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@texto", texto);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        res.Add(new Propietario
+                        {
+                            IdPropietario = reader.GetInt32("IdPropietario"),
+                            Nombre = reader.GetString("Nombre"),
+                            Apellido = reader.GetString("Apellido"),
+                            Dni = reader.GetString("DNI"),
+                            Telefono = reader.GetString("Telefono"),
+                            Email = reader.GetString("Email"),
+                            Clave = reader.GetString("Clave"),
+                        });
                     }
                     connection.Close();
                 }

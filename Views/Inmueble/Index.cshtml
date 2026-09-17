@@ -24,50 +24,94 @@
     <a asp-action="Create" class="btn btn-primary">Nuevo Inmueble</a>
 </p>
 
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Buscar</label>
+            <input type="text" name="busqueda" class="form-control"
+                   placeholder="Provincia, localidad, dirección, tipo o propietario" value="@ViewBag.Busqueda" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Precio</label>
+            <select name="operadorPrecio" class="form-control">
+                <option value="">--</option>
+                <option value="mayor" selected="@(ViewBag.OperadorPrecio == "mayor")">Mayor a</option>
+                <option value="menor" selected="@(ViewBag.OperadorPrecio == "menor")">Menor a</option>
+                <option value="igual" selected="@(ViewBag.OperadorPrecio == "igual")">Igual a</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Monto</label>
+            <input type="number" step="0.01" name="precio" class="form-control" value="@ViewBag.Precio" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Ambientes (mín.)</label>
+            <input type="number" name="ambientesMinimo" class="form-control" value="@ViewBag.AmbientesMinimo" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">m² desde</label>
+            <input type="number" name="metrosMinimo" class="form-control" value="@ViewBag.MetrosMinimo" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">m² hasta</label>
+            <input type="number" name="metrosMaximo" class="form-control" value="@ViewBag.MetrosMaximo" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Estado</label>
+            <select name="habilitadoFiltro" class="form-control">
+                <option value="">Todos</option>
+                <option value="habilitados" selected="@(ViewBag.HabilitadoFiltro == "habilitados")">Habilitados</option>
+                <option value="deshabilitados" selected="@(ViewBag.HabilitadoFiltro == "deshabilitados")">Deshabilitados
+                </option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace((string)ViewBag.Busqueda) || ViewBag.Precio != null ||
+    !string.IsNullOrWhiteSpace((string)ViewBag.HabilitadoFiltro))
+    {
+        <a asp-action="Index" class="btn btn-secondary btn-sm mt-2">Limpiar filtros</a>
+    }
+</form>
+
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Código</th>
+            <th>Foto</th>
             <th>Tipo</th>
-            <th>Provincia</th>
-            <th>Localidad</th>
             <th>Dirección</th>
-            <th>Precio por día</th>
-            <th>Propietario</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th>m²</th>
+            <th>Ambientes</th>
+            <th>Baños</th>
+            <th>Precio/día</th>
+            <th>Habilitado</th>
+            <th></th>
         </tr>
     </thead>
-
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
-                <td>@item.IdInmueble</td>
-                <td>@item.TipoDeInmueble?.Nombre</td>
-                <td>@item.Provincia</td>
-                <td>@item.Localidad</td>
-                <td>@item.Direccion</td>
-                <td>$ @item.PrecioXDia</td>
-
                 <td>
-                    @if (item.Propietario != null)
+                    @if (!string.IsNullOrEmpty(item.FotoPortada))
                     {
-                        @($"{item.Propietario.Nombre} {item.Propietario.Apellido}")
-                    }
-                </td>
-
-                <td>
-                    @if (item.Habilitado)
-                    {
-                        <span>Habilitado</span>
+                        <img src="@item.FotoPortada" style="width:80px;height:60px;object-fit:cover;" />
                     }
                     else
                     {
-                        <span>No habilitado</span>
+                        <span class="text-muted">Sin foto</span>
                     }
                 </td>
-
+                <td>@item.TipoDeInmueble?.Nombre</td>
+                <td>@item.Direccion</td>
+                <td>@item.MetrosCuadrados</td>
+                <td>@item.NroAmbientes</td>
+                <td>@item.NroBanios</td>
+                <td>$@item.PrecioXDia</td>
+                <td>@(item.Habilitado ? "Sí" : "No")</td>
                 <td>
                     <a asp-action="Details" asp-route-id="@item.IdInmueble">Detalles</a> |
                     <a asp-action="Edit" asp-route-id="@item.IdInmueble">Editar</a> |

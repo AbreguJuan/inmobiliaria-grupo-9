@@ -277,5 +277,41 @@ namespace inmobiliaria_grupo_9.Models
 
             return p;
         }
+
+        public IList<Inquilino> Buscar(string texto)
+        {
+            var res = new List<Inquilino>();
+            texto = "%" + texto + "%";
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT ID_Inquilino AS IdInquilino, Nombre, Apellido, Dni, Telefono, Email
+            FROM inquilino
+            WHERE Nombre LIKE @texto
+               OR Apellido LIKE @texto
+               OR Dni LIKE @texto
+               OR Telefono LIKE @texto
+               OR Email LIKE @texto";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@texto", texto);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        res.Add(new Inquilino
+                        {
+                            IdInquilino = reader.GetInt32("IdInquilino"),
+                            Nombre = reader.GetString("Nombre"),
+                            Apellido = reader.GetString("Apellido"),
+                            Dni = reader.GetString("Dni"),
+                            Telefono = reader.IsDBNull(reader.GetOrdinal("Telefono")) ? null : reader.GetString("Telefono"),
+                            Email = reader.GetString("Email"),
+                        });
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
+        }
     }
 }

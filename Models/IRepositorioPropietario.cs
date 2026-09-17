@@ -4,5 +4,6 @@ namespace inmobiliaria_grupo_9.Models
     {
         Propietario? ObtenerPorEmail(string email);
         IList<Propietario> BuscarPorNombre(string nombre);
+        IList<Propietario> Buscar(string texto);
     }
 }

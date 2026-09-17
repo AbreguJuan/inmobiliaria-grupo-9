@@ -4,5 +4,6 @@ namespace inmobiliaria_grupo_9.Models
     {
         // Para no permitir borrar un tipo que algún inmueble está usando
         int ContarInmueblesQueLoUsan(int idTipoInmueble);
+        IList<TipoDeInmueble> Buscar(string? texto, bool? habilitado = null);
     }
 }

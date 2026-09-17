@@ -13,7 +13,7 @@
     </div>
 }
 
-<form asp-action="Create" method="post">
+<form asp-action="Create" method="post" enctype="multipart/form-data">
 
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -94,6 +94,16 @@
     <div class="form-check mb-3">
         <input asp-for="Habilitado" class="form-check-input" />
         <label asp-for="Habilitado" class="form-check-label"></label>
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="control-label">Foto de portada</label>
+        <input type="file" name="fotoPortada" class="form-control" accept="image/*" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label class="control-label">Fotos de galería (podés elegir varias)</label>
+        <input type="file" name="fotosGaleria" class="form-control" accept="image/*" multiple />
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar</button>
