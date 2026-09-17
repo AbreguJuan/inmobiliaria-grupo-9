@@ -1,23 +1,38 @@
-@model inmobiliaria_grupo_9.Models.Reserva
+@model inmobiliaria_grupo_9.Models.Pago
 
 @{
-    ViewData["Title"] = "Detalle de la Reserva";
+    ViewData["Title"] = "Detalle del Pago";
 }
 
-<h1>Detalle de la Reserva</h1>
+<h1>Detalle del Pago</h1>
 
 <dl class="row">
-    <dt class="col-sm-2">Inquilino (ID)</dt>
-    <dd class="col-sm-10">@Model.IdInquilino</dd>
+    <dt class="col-sm-2">ID Pago</dt>
+    <dd class="col-sm-10">@Model.IdPago</dd>
 
-    <dt class="col-sm-2">Inmueble (ID)</dt>
-    <dd class="col-sm-10">@Model.IdInmueble</dd>
+    <dt class="col-sm-2">Reserva Asociada</dt>
+    <dd class="col-sm-10">@Model.IdReserva</dd>
 
-    <dt class="col-sm-2">Desde</dt>
-    <dd class="col-sm-10">@Model.Desde.ToShortDateString()</dd>
+    <dt class="col-sm-2">Concepto</dt>
+    <dd class="col-sm-10">@Model.Concepto</dd>
 
-    <dt class="col-sm-2">Hasta</dt>
-    <dd class="col-sm-10">@Model.Hasta.ToShortDateString()</dd>
+    <dt class="col-sm-2">Fecha de Pago</dt>
+    <dd class="col-sm-10">@Model.FechaPago.ToShortDateString()</dd>
+
+    <dt class="col-sm-2">Importe</dt>
+    <dd class="col-sm-10">$@Model.Importe</dd>
+
+    <dt class="col-sm-2">Estado</dt>
+    <dd class="col-sm-10">
+        @if(Model.Anulado)
+        {
+            <span class="badge bg-danger">Anulado</span>
+        }
+        else
+        {
+            <span class="badge bg-success">Vigente</span>
+        }
+    </dd>
 </dl>
 
 @* --- INICIO AUDITORÍA (SOLO VISIBLE PARA ADMINISTRADOR) --- *@
@@ -34,17 +49,17 @@
         <div class="card-body bg-light">
             <div class="row">
                 <div class="col-md-6">
-                    <h6 class="text-muted border-bottom pb-1">Creación de la Reserva</h6>
+                    <h6 class="text-muted border-bottom pb-1">Creación del Pago</h6>
                     <p class="mb-1 text-sm">
                         <strong>Creado por:</strong> 
                         @(Model.Creador != null ? $"{Model.Creador.Nombre} {Model.Creador.Apellido}" : "Sistema/Desconocido")
                     </p>
                 </div>
                 <div class="col-md-6">
-                    <h6 class="text-muted border-bottom pb-1">Finalización</h6>
+                    <h6 class="text-muted border-bottom pb-1">Anulación</h6>
                     <p class="mb-1 text-sm">
-                        <strong>Terminado por:</strong> 
-                        @(Model.Terminador != null ? $"{Model.Terminador.Nombre} {Model.Terminador.Apellido}" : "Aún no finalizada")
+                        <strong>Anulado por:</strong> 
+                        @(Model.Anulador != null ? $"{Model.Anulador.Nombre} {Model.Anulador.Apellido}" : "No anulado")
                     </p>
                 </div>
             </div>
@@ -54,6 +69,9 @@
 @* --- FIN AUDITORÍA --- *@
 
 <div class="mt-3">
-    <a asp-action="Edit" asp-route-id="@Model.IdReserva" class="btn btn-primary">Editar</a>
-    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    @if (!Model.Anulado)
+    {
+        <a asp-action="Edit" asp-route-id="@Model.IdPago" class="btn btn-primary">Editar</a>
+    }
+    <a href="javascript:history.back()" class="btn btn-secondary">Volver al listado</a>
 </div>

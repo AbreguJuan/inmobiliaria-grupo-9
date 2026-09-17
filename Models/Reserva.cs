@@ -21,12 +21,10 @@ namespace inmobiliaria_grupo_9.Models
         [Display(Name = "Desde")]
         public DateTime Desde { get; set; }
 
-
         [Required(ErrorMessage = "La fecha de fin es obligatoria")]
         [DataType(DataType.Date)]
         [Display(Name = "Hasta")]
         public DateTime Hasta { get; set; }
-
 
         [Display(Name = "Fecha de finalización")]
         public DateTime? FechaFinalizacion { get; set; }
@@ -36,9 +34,17 @@ namespace inmobiliaria_grupo_9.Models
 
         [Display(Name = "Monto diario")]
         public decimal MontoDiario { get; set; }
-        // Propiedades de navegación
-        public Inquilino? Inquilino { get; set; }
 
+        // --- Nuevos campos de Auditoría ---
+        public int? CreadoPor { get; set; }
+        public int? TerminadoPor { get; set; }
+
+        // --- Propiedades de navegación ---
+        public Inquilino? Inquilino { get; set; }
         public Inmueble? Inmueble { get; set; }
+        
+        // Navegación para Auditoría
+        public Usuario? Creador { get; set; }
+        public Usuario? Terminador { get; set; }
     }
 }

@@ -24,6 +24,15 @@ namespace inmobiliaria_grupo_9.Models
 
         public bool Anulado { get; set; }
 
+        // --- Nuevos campos de Auditoría ---
+        public int? CreadoPor { get; set; }
+        public int? AnuladoPor { get; set; }
+
+        // --- Propiedades de navegación ---
         public Reserva? Reserva { get; set; }
+        
+        // Navegación para Auditoría
+        public Usuario? Creador { get; set; }
+        public Usuario? Anulador { get; set; }
     }
 }

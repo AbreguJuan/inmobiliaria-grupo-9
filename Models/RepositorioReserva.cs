@@ -17,9 +17,9 @@ namespace inmobiliaria_grupo_9.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"INSERT INTO reserva
-    (ID_Inquilino, ID_Inmueble, Desde, Hasta, MontoDiario)
-    VALUES (@idInquilino, @idInmueble, @desde, @hasta, @montoDiario);
-    SELECT LAST_INSERT_ID();";
+                    (ID_Inquilino, ID_Inmueble, Desde, Hasta, MontoDiario, CreadoPor)
+                    VALUES (@idInquilino, @idInmueble, @desde, @hasta, @montoDiario, @creadoPor);
+                    SELECT LAST_INSERT_ID();";
 
                 using (var command = new MySqlCommand(sql, connection))
                 {
@@ -30,6 +30,7 @@ namespace inmobiliaria_grupo_9.Models
                     command.Parameters.AddWithValue("@desde", r.Desde);
                     command.Parameters.AddWithValue("@hasta", r.Hasta);
                     command.Parameters.AddWithValue("@montoDiario", r.MontoDiario);
+                    command.Parameters.AddWithValue("@creadoPor", r.CreadoPor ?? (object)DBNull.Value);
 
                     connection.Open();
 
@@ -115,7 +116,8 @@ namespace inmobiliaria_grupo_9.Models
                         r.MontoDiario,
                         r.Finalizada,
                         r.FechaFinalizacion,
-
+                        r.CreadoPor,
+                        r.TerminadoPor,
 
                         i.Nombre AS NombreInquilino,
                         i.Apellido AS ApellidoInquilino,
@@ -151,9 +153,9 @@ namespace inmobiliaria_grupo_9.Models
                             Hasta = reader.GetDateTime("Hasta"),
                             MontoDiario = reader.GetDecimal("MontoDiario"),
                             Finalizada = reader.GetBoolean("Finalizada"),
-                            FechaFinalizacion = reader.IsDBNull(reader.GetOrdinal("FechaFinalizacion"))
-                            ? null
-                        : reader.GetDateTime("FechaFinalizacion"),
+                            FechaFinalizacion = reader.IsDBNull(reader.GetOrdinal("FechaFinalizacion")) ? null : reader.GetDateTime("FechaFinalizacion"),
+                            CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor")) ? null : reader.GetInt32("CreadoPor"),
+                            TerminadoPor = reader.IsDBNull(reader.GetOrdinal("TerminadoPor")) ? null : reader.GetInt32("TerminadoPor"),
 
                             Inquilino = new Inquilino
                             {
@@ -190,9 +192,7 @@ namespace inmobiliaria_grupo_9.Models
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     connection.Open();
-
                     res = Convert.ToInt32(command.ExecuteScalar());
-
                     connection.Close();
                 }
             }
@@ -216,18 +216,27 @@ namespace inmobiliaria_grupo_9.Models
                         r.MontoDiario,
                         r.Finalizada,
                         r.FechaFinalizacion,
+                        r.CreadoPor,
+                        r.TerminadoPor,
 
                         i.Nombre AS NombreInquilino,
                         i.Apellido AS ApellidoInquilino,
 
                         inm.ID_TipoInmueble AS IdTipoInmuebleInmueble,
                         t.Nombre AS TipoInmueble,
-                        inm.Direccion AS DireccionInmueble
+                        inm.Direccion AS DireccionInmueble,
+                        
+                        uc.Nombre AS CreadorNombre,
+                        uc.Apellido AS CreadorApellido,
+                        ut.Nombre AS TerminadorNombre,
+                        ut.Apellido AS TerminadorApellido
 
                     FROM reserva r
-                INNER JOIN inquilino i ON r.ID_Inquilino = i.ID_Inquilino
-                INNER JOIN inmueble inm ON r.ID_Inmueble = inm.ID_Inmueble
-                INNER JOIN tipo_inmueble t ON inm.ID_TipoInmueble = t.ID_TipoInmueble
+                    INNER JOIN inquilino i ON r.ID_Inquilino = i.ID_Inquilino
+                    INNER JOIN inmueble inm ON r.ID_Inmueble = inm.ID_Inmueble
+                    INNER JOIN tipo_inmueble t ON inm.ID_TipoInmueble = t.ID_TipoInmueble
+                    LEFT JOIN usuario uc ON r.CreadoPor = uc.ID_Usuario
+                    LEFT JOIN usuario ut ON r.TerminadoPor = ut.ID_Usuario
 
                     WHERE r.ID_Reserva = @id";
 
@@ -250,9 +259,9 @@ namespace inmobiliaria_grupo_9.Models
                             Hasta = reader.GetDateTime("Hasta"),
                             MontoDiario = reader.GetDecimal("MontoDiario"),
                             Finalizada = reader.GetBoolean("Finalizada"),
-                            FechaFinalizacion = reader.IsDBNull(reader.GetOrdinal("FechaFinalizacion"))
-                            ? null
-                            : reader.GetDateTime("FechaFinalizacion"),
+                            FechaFinalizacion = reader.IsDBNull(reader.GetOrdinal("FechaFinalizacion")) ? null : reader.GetDateTime("FechaFinalizacion"),
+                            CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor")) ? null : reader.GetInt32("CreadoPor"),
+                            TerminadoPor = reader.IsDBNull(reader.GetOrdinal("TerminadoPor")) ? null : reader.GetInt32("TerminadoPor"),
 
                             Inquilino = new Inquilino
                             {
@@ -269,6 +278,26 @@ namespace inmobiliaria_grupo_9.Models
                                 Direccion = reader.GetString("DireccionInmueble")
                             }
                         };
+
+                        // Mapeo de la auditoría (Usuario Creador)
+                        if (!reader.IsDBNull(reader.GetOrdinal("CreadoPor")))
+                        {
+                            r.Creador = new Usuario
+                            {
+                                Nombre = reader.GetString("CreadorNombre"),
+                                Apellido = reader.GetString("CreadorApellido")
+                            };
+                        }
+
+                        // Mapeo de la auditoría (Usuario Terminador)
+                        if (!reader.IsDBNull(reader.GetOrdinal("TerminadoPor")))
+                        {
+                            r.Terminador = new Usuario
+                            {
+                                Nombre = reader.GetString("TerminadorNombre"),
+                                Apellido = reader.GetString("TerminadorApellido")
+                            };
+                        }
                     }
 
                     connection.Close();
@@ -278,8 +307,6 @@ namespace inmobiliaria_grupo_9.Models
             return r;
         }
 
-        // Verifica que no se genere una nueva reserva
-        // si el inmueble ya está reservado en esas fechas.
         public bool ExisteSuperposicion(
             int idInmueble,
             DateTime desde,
@@ -316,7 +343,8 @@ namespace inmobiliaria_grupo_9.Models
 
             return existe;
         }
-        public int FinalizarReserva(int idReserva, DateTime fechaFinalizacion)
+
+        public int FinalizarReserva(int idReserva, DateTime fechaFinalizacion, int idUsuario)
         {
             int res = -1;
 
@@ -324,13 +352,15 @@ namespace inmobiliaria_grupo_9.Models
             {
                 string sql = @"UPDATE reserva
                        SET Finalizada = 1,
-                           FechaFinalizacion = @fechaFinalizacion
+                           FechaFinalizacion = @fechaFinalizacion,
+                           TerminadoPor = @idUsuario
                        WHERE ID_Reserva = @idReserva";
 
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@fechaFinalizacion", fechaFinalizacion);
                     command.Parameters.AddWithValue("@idReserva", idReserva);
+                    command.Parameters.AddWithValue("@idUsuario", idUsuario);
 
                     connection.Open();
                     res = command.ExecuteNonQuery();
@@ -395,5 +425,3 @@ namespace inmobiliaria_grupo_9.Models
         }
     }
 }
-
-

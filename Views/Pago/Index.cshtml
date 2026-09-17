@@ -38,16 +38,16 @@
                     }
                 </td>
                 <td>
-    <a asp-action="Edit"
-       asp-route-id="@item.IdPago">Editar</a>
+                    <a asp-action="Edit" asp-route-id="@item.IdPago">Editar</a>
+                    <span> | </span>
+                    <a asp-action="Details" asp-route-id="@item.IdPago">Detalles</a>
 
-    @if (!item.Anulado)
-    {
-        <span> | </span>
-        <a asp-action="Delete"
-           asp-route-id="@item.IdPago">Anular</a>
-    }
-</td>
+                    @if (!item.Anulado)
+                    {
+                        <span> | </span>
+                        <a asp-action="Delete" asp-route-id="@item.IdPago">Anular</a>
+                    }
+                </td>
             </tr>
         }
     </tbody>

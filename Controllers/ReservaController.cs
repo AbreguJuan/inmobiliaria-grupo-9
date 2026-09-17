@@ -2,6 +2,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using inmobiliaria_grupo_9.Models;
+using System.Security.Claims;
 
 
 namespace inmobiliaria_grupo_9.Controllers
@@ -92,6 +93,12 @@ namespace inmobiliaria_grupo_9.Controllers
 
                 if (ModelState.IsValid && inmueble != null)
                 {
+                    var claimId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                    if (claimId != null) 
+                    {
+                        reserva.CreadoPor = int.Parse(claimId);
+                    }
+
                     reserva.MontoDiario = Convert.ToDecimal(inmueble.PrecioXDia);
                     _repositorioReserva.Alta(reserva);
                     return RedirectToAction(nameof(Index));
@@ -236,6 +243,7 @@ namespace inmobiliaria_grupo_9.Controllers
 
             return View("ConfirmarFinalizacion", reserva);
         }
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult PagarMulta(
@@ -269,9 +277,16 @@ namespace inmobiliaria_grupo_9.Controllers
 
                 _repositorioPago.Alta(pago);
 
-                // Recién después de registrar el pago,
-                // finalizamos la reserva.
-                _repositorioReserva.FinalizarReserva(id, fechaFinalizacion);
+                // Capturamos el ID del usuario logueado desde la cookie de sesión
+                var claimId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                int idUsuario = 0; 
+                if (claimId != null) 
+                {
+                    idUsuario = int.Parse(claimId);
+                }
+
+                // Recién después de registrar el pago, finalizamos la reserva pasando el idUsuario.
+                _repositorioReserva.FinalizarReserva(id, fechaFinalizacion, idUsuario);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -281,7 +296,6 @@ namespace inmobiliaria_grupo_9.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
-
 
         // GET: Reserva/Renovar/5
         public IActionResult Renovar(int id)

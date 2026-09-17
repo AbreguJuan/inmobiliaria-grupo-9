@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using inmobiliaria_grupo_9.Models;
+using System.Security.Claims;
 
 namespace inmobiliaria_grupo_9.Controllers
 {
@@ -18,6 +19,18 @@ namespace inmobiliaria_grupo_9.Controllers
             return View(lista);
         }
 
+        public IActionResult Details(int id)
+{
+    var pago = repositorioPago.ObtenerPorId(id);
+
+    if (pago == null)
+    {
+        return NotFound();
+    }
+
+    return View(pago);
+}
+
         public IActionResult Create(int idReserva)
         {
             var pago = new Pago
@@ -35,6 +48,13 @@ namespace inmobiliaria_grupo_9.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Capturamos el ID del usuario logueado para la auditoría (CreadoPor)
+                var claimId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (claimId != null) 
+                {
+                    pago.CreadoPor = int.Parse(claimId);
+                }
+
                 repositorioPago.Alta(pago);
                 return RedirectToAction(nameof(Index));
             }
@@ -83,20 +103,26 @@ namespace inmobiliaria_grupo_9.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmado(int id)
         {
-            repositorioPago.Anular(id);
+            // Capturamos el ID del usuario logueado para la auditoría (AnuladoPor)
+            var claimId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            int idUsuario = 0;
+            if (claimId != null) 
+            {
+                idUsuario = int.Parse(claimId);
+            }
+
+            repositorioPago.Anular(id, idUsuario);
 
             return RedirectToAction(nameof(Index));
         }
+
         public IActionResult PorReserva(int idReserva)
-{
-    var pagos = repositorioPago.ObtenerPorReserva(idReserva);
+        {
+            var pagos = repositorioPago.ObtenerPorReserva(idReserva);
 
-    ViewBag.IdReserva = idReserva;
+            ViewBag.IdReserva = idReserva;
 
-    return View(pagos);
+            return View(pagos);
+        }
+    }
 }
-        
-}
-
-}
-

@@ -6,7 +6,7 @@ namespace inmobiliaria_grupo_9.Models
 
         int Modificacion(Pago pago);
 
-        int Anular(int idPago);
+        int Anular(int idPago, int idUsuario);
 
         IList<Pago> ObtenerLista();
 

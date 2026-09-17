@@ -1,3 +1,4 @@
+using System.Data;
 using MySqlConnector;
 
 namespace inmobiliaria_grupo_9.Models
@@ -17,9 +18,9 @@ namespace inmobiliaria_grupo_9.Models
 
             string sql = @"
                 INSERT INTO pago
-                (IdReserva, Concepto, FechaPago, Importe, Anulado)
+                (IdReserva, Concepto, FechaPago, Importe, Anulado, CreadoPor)
                 VALUES
-                (@IdReserva, @Concepto, @FechaPago, @Importe, 0);
+                (@IdReserva, @Concepto, @FechaPago, @Importe, 0, @CreadoPor);
 
                 SELECT LAST_INSERT_ID();";
 
@@ -29,6 +30,7 @@ namespace inmobiliaria_grupo_9.Models
             command.Parameters.AddWithValue("@Concepto", pago.Concepto);
             command.Parameters.AddWithValue("@FechaPago", pago.FechaPago);
             command.Parameters.AddWithValue("@Importe", pago.Importe);
+            command.Parameters.AddWithValue("@CreadoPor", pago.CreadoPor ?? (object)DBNull.Value);
 
             connection.Open();
 
@@ -43,8 +45,6 @@ namespace inmobiliaria_grupo_9.Models
 
             using var connection = new MySqlConnection(connectionString);
 
-            // La narrativa dice que al editar
-            // solamente puede modificarse el concepto.
             string sql = @"
                 UPDATE pago
                 SET Concepto = @Concepto
@@ -62,22 +62,22 @@ namespace inmobiliaria_grupo_9.Models
             return res;
         }
 
-        public int Anular(int idPago)
+        public int Anular(int idPago, int idUsuario)
         {
             int res = -1;
 
             using var connection = new MySqlConnection(connectionString);
 
-            // No se elimina físicamente:
-            // solamente se cambia su estado.
             string sql = @"
                 UPDATE pago
-                SET Anulado = 1
+                SET Anulado = 1,
+                    AnuladoPor = @idUsuario
                 WHERE IdPago = @IdPago;";
 
             using var command = new MySqlCommand(sql, connection);
 
             command.Parameters.AddWithValue("@IdPago", idPago);
+            command.Parameters.AddWithValue("@idUsuario", idUsuario);
 
             connection.Open();
 
@@ -94,19 +94,12 @@ namespace inmobiliaria_grupo_9.Models
 
             string sql = @"
                 SELECT
-                    IdPago,
-                    IdReserva,
-                    Concepto,
-                    FechaPago,
-                    Importe,
-                    Anulado
+                    IdPago, IdReserva, Concepto, FechaPago, Importe, Anulado, CreadoPor, AnuladoPor
                 FROM pago
                 ORDER BY FechaPago DESC;";
 
             using var command = new MySqlCommand(sql, connection);
-
             connection.Open();
-
             using var reader = command.ExecuteReader();
 
             while (reader.Read())
@@ -118,7 +111,9 @@ namespace inmobiliaria_grupo_9.Models
                     Concepto = reader.GetString("Concepto"),
                     FechaPago = reader.GetDateTime("FechaPago"),
                     Importe = reader.GetDecimal("Importe"),
-                    Anulado = reader.GetBoolean("Anulado")
+                    Anulado = reader.GetBoolean("Anulado"),
+                    CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor")) ? null : reader.GetInt32("CreadoPor"),
+                    AnuladoPor = reader.IsDBNull(reader.GetOrdinal("AnuladoPor")) ? null : reader.GetInt32("AnuladoPor")
                 });
             }
 
@@ -133,21 +128,17 @@ namespace inmobiliaria_grupo_9.Models
 
             string sql = @"
                 SELECT
-                    IdPago,
-                    IdReserva,
-                    Concepto,
-                    FechaPago,
-                    Importe,
-                    Anulado
-                FROM pago
-                WHERE IdPago = @IdPago;";
+                    p.IdPago, p.IdReserva, p.Concepto, p.FechaPago, p.Importe, p.Anulado, p.CreadoPor, p.AnuladoPor,
+                    uc.Nombre AS CreadorNombre, uc.Apellido AS CreadorApellido,
+                    ua.Nombre AS AnuladorNombre, ua.Apellido AS AnuladorApellido
+                FROM pago p
+                LEFT JOIN usuario uc ON p.CreadoPor = uc.ID_Usuario
+                LEFT JOIN usuario ua ON p.AnuladoPor = ua.ID_Usuario
+                WHERE p.IdPago = @IdPago;";
 
             using var command = new MySqlCommand(sql, connection);
-
             command.Parameters.AddWithValue("@IdPago", idPago);
-
             connection.Open();
-
             using var reader = command.ExecuteReader();
 
             if (reader.Read())
@@ -159,8 +150,28 @@ namespace inmobiliaria_grupo_9.Models
                     Concepto = reader.GetString("Concepto"),
                     FechaPago = reader.GetDateTime("FechaPago"),
                     Importe = reader.GetDecimal("Importe"),
-                    Anulado = reader.GetBoolean("Anulado")
+                    Anulado = reader.GetBoolean("Anulado"),
+                    CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor")) ? null : reader.GetInt32("CreadoPor"),
+                    AnuladoPor = reader.IsDBNull(reader.GetOrdinal("AnuladoPor")) ? null : reader.GetInt32("AnuladoPor")
                 };
+
+                if (!reader.IsDBNull(reader.GetOrdinal("CreadoPor")))
+                {
+                    pago.Creador = new Usuario
+                    {
+                        Nombre = reader.GetString("CreadorNombre"),
+                        Apellido = reader.GetString("CreadorApellido")
+                    };
+                }
+
+                if (!reader.IsDBNull(reader.GetOrdinal("AnuladoPor")))
+                {
+                    pago.Anulador = new Usuario
+                    {
+                        Nombre = reader.GetString("AnuladorNombre"),
+                        Apellido = reader.GetString("AnuladorApellido")
+                    };
+                }
             }
 
             return pago;
@@ -174,22 +185,14 @@ namespace inmobiliaria_grupo_9.Models
 
             string sql = @"
                 SELECT
-                    IdPago,
-                    IdReserva,
-                    Concepto,
-                    FechaPago,
-                    Importe,
-                    Anulado
+                    IdPago, IdReserva, Concepto, FechaPago, Importe, Anulado, CreadoPor, AnuladoPor
                 FROM pago
                 WHERE IdReserva = @IdReserva
                 ORDER BY FechaPago DESC;";
 
             using var command = new MySqlCommand(sql, connection);
-
             command.Parameters.AddWithValue("@IdReserva", idReserva);
-
             connection.Open();
-
             using var reader = command.ExecuteReader();
 
             while (reader.Read())
@@ -201,7 +204,9 @@ namespace inmobiliaria_grupo_9.Models
                     Concepto = reader.GetString("Concepto"),
                     FechaPago = reader.GetDateTime("FechaPago"),
                     Importe = reader.GetDecimal("Importe"),
-                    Anulado = reader.GetBoolean("Anulado")
+                    Anulado = reader.GetBoolean("Anulado"),
+                    CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor")) ? null : reader.GetInt32("CreadoPor"),
+                    AnuladoPor = reader.IsDBNull(reader.GetOrdinal("AnuladoPor")) ? null : reader.GetInt32("AnuladoPor")
                 });
             }
 
