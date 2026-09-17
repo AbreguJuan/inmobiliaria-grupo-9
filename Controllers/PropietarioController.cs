@@ -16,30 +16,45 @@ namespace inmobiliaria_grupo_9.Controllers
         }
 
         // GET: Propietario
-        public IActionResult Index(string busqueda)
+      public IActionResult Index(string busqueda, int pagina = 1)
+{
+    try
+    {
+        const int tamPagina = 5;
+        IList<Propietario> propietarios;
+
+        if (!string.IsNullOrWhiteSpace(busqueda))
         {
-            try
-            {
-                IList<Propietario> propietarios;
-
-                if (!string.IsNullOrWhiteSpace(busqueda))
-                {
-                    propietarios = _repositorioPropietario.Buscar(busqueda);
-                }
-                else
-                {
-                    propietarios = _repositorioPropietario.ObtenerLista(1, 1000);
-                }
-
-                ViewBag.Busqueda = busqueda;
-                return View(propietarios);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al obtener propietarios: {ex.Message}");
-                return View(new List<Propietario>());
-            }
+            propietarios = _repositorioPropietario.Buscar(busqueda);
+            ViewBag.TotalPaginas = 1;
         }
+        else
+        {
+            int totalRegistros = _repositorioPropietario.ObtenerCantidad();
+
+            int totalPaginas = (int)Math.Ceiling(
+                (double)totalRegistros / tamPagina
+            );
+
+            propietarios = _repositorioPropietario.ObtenerLista(
+                pagina,
+                tamPagina
+            );
+
+            ViewBag.TotalPaginas = totalPaginas;
+        }
+
+        ViewBag.PaginaActual = pagina;
+        ViewBag.Busqueda = busqueda;
+
+        return View(propietarios);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al obtener propietarios: {ex.Message}");
+        return View(new List<Propietario>());
+    }
+}
 
         // GET: Propietario/Details/5
         public IActionResult Details(int id)

@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Propietarios";
+
+    int paginaActual = ViewBag.PaginaActual ?? 1;
+    int totalPaginas = ViewBag.TotalPaginas ?? 1;
 }
 
 <h1>Propietarios</h1>
@@ -12,10 +15,14 @@
 
 <form asp-action="Index" method="get" class="mb-3">
     <div class="input-group">
-        <input type="text" name="busqueda" class="form-control"
+        <input type="text"
+               name="busqueda"
+               class="form-control"
                placeholder="Buscar por nombre, apellido, DNI, teléfono o email"
                value="@ViewBag.Busqueda" />
+
         <button type="submit" class="btn btn-primary">Buscar</button>
+
         @if (!string.IsNullOrWhiteSpace((string)ViewBag.Busqueda))
         {
             <a asp-action="Index" class="btn btn-secondary">Limpiar</a>
@@ -35,6 +42,7 @@
             <th></th>
         </tr>
     </thead>
+
     <tbody>
         @foreach (var item in Model)
         {
@@ -45,13 +53,54 @@
                 <td>@item.Dni</td>
                 <td>@item.Telefono</td>
                 <td>@item.Email</td>
+
                 <td>
-                    <a asp-action="Details" asp-route-id="@item.IdPropietario">Detalles</a> |
-                    <a asp-action="Edit" asp-route-id="@item.IdPropietario">Editar</a> |
-                    <a asp-action="Delete" asp-route-id="@item.IdPropietario">Eliminar</a>
+                    <a asp-action="Details"
+                       asp-route-id="@item.IdPropietario">Detalles</a> |
+
+                    <a asp-action="Edit"
+                       asp-route-id="@item.IdPropietario">Editar</a> |
+
+                    <a asp-action="Delete"
+                       asp-route-id="@item.IdPropietario">Eliminar</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
-</table>
+
+@if (string.IsNullOrWhiteSpace((string)ViewBag.Busqueda) && totalPaginas > 1)
+{
+    <nav>
+        <ul class="pagination">
+
+            <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-pagina="@(paginaActual - 1)">
+                    Anterior
+                </a>
+            </li>
+
+            @for (int i = 1; i <= totalPaginas; i++)
+            {
+                <li class="page-item @(i == paginaActual ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-pagina="@i">
+                        @i
+                    </a>
+                </li>
+            }
+
+            <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-pagina="@(paginaActual + 1)">
+                    Siguiente
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+}
