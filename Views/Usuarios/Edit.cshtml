@@ -1,0 +1,95 @@
+@model inmobiliaria_grupo_9.Models.Usuario
+@{
+    ViewBag.Title = ViewData["Title"]; 
+    var Roles = (IDictionary<int, string>)ViewBag.Roles;
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0"><i class="fa-solid fa-user-pen"></i> @ViewBag.Title</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="IdUsuario" class="control-label fw-bold"></label>
+                        <input asp-for="IdUsuario" class="form-control bg-light" readonly />
+                        <span asp-validation-for="IdUsuario" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Nombre" class="control-label fw-bold"></label>
+                            <input asp-for="Nombre" class="form-control" />
+                            <span asp-validation-for="Nombre" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Apellido" class="control-label fw-bold"></label>
+                            <input asp-for="Apellido" class="form-control" />
+                            <span asp-validation-for="Apellido" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="control-label fw-bold"></label>
+                        <input asp-for="Email" class="form-control" type="email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Clave" class="control-label fw-bold"></label>
+                        <input asp-for="Clave" class="form-control" type="password" />
+                        <span asp-validation-for="Clave" class="text-danger"></span>
+                        <small class="form-text text-muted">Escribí una nueva clave si deseás cambiarla.</small>
+                    </div>
+
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <div class="mb-4">
+                            <label class="control-label fw-bold">Rol del Sistema</label>
+                            <select class="form-select" name="Rol">
+                                @foreach (var kvp in Roles)
+                                {
+                                    <option selected="@(kvp.Key == Model.Rol)" value="@kvp.Key">@kvp.Value</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Rol" class="text-danger"></span>
+                        </div>
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="Rol" />
+                    }
+
+                    <div class="mb-4 text-center">
+                        <label class="control-label fw-bold d-block mb-2">Foto Actual</label>
+                        @if(!String.IsNullOrEmpty(Model.Avatar)) 
+                        {
+                            <img width="80" height="80" src="@Model.Avatar" class="rounded-circle border shadow-sm" style="object-fit: cover;" alt="Avatar" />
+                        }
+                        else
+                        {
+                            <img width="80" height="80" src="https://ui-avatars.com/api/?background=random&color=fff&rounded=true&name=@Model.Nombre+@Model.Apellido" class="rounded-circle border shadow-sm" alt="Avatar automático" />
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-arrow-left"></i> Volver
+                        </a>
+                        <button type="submit" class="btn btn-warning fw-bold">
+                            <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
