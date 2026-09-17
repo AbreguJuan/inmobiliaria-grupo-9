@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: inmobiliariagrupo9
 -- ------------------------------------------------------
--- Server version 8.0.46
+-- Server version	8.0.46
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -126,12 +126,12 @@ CREATE TABLE `pago` (
   `AnuladoPor` int DEFAULT NULL,
   PRIMARY KEY (`IdPago`),
   KEY `FK_Pago_Reserva` (`IdReserva`),
-  KEY `FK_Pago_CreadoPor_idx` (`CreadoPor`),
-  KEY `FK_Pago_AnuladoPor_idx` (`AnuladoPor`),
-  CONSTRAINT `FK_Pago_Reserva` FOREIGN KEY (`IdReserva`) REFERENCES `reserva` (`ID_Reserva`),
+  KEY `FK_Pago_CreadoPor` (`CreadoPor`),
+  KEY `FK_Pago_AnuladoPor` (`AnuladoPor`),
+  CONSTRAINT `FK_Pago_AnuladoPor` FOREIGN KEY (`AnuladoPor`) REFERENCES `usuario` (`ID_Usuario`),
   CONSTRAINT `FK_Pago_CreadoPor` FOREIGN KEY (`CreadoPor`) REFERENCES `usuario` (`ID_Usuario`),
-  CONSTRAINT `FK_Pago_AnuladoPor` FOREIGN KEY (`AnuladoPor`) REFERENCES `usuario` (`ID_Usuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `FK_Pago_Reserva` FOREIGN KEY (`IdReserva`) REFERENCES `reserva` (`ID_Reserva`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -140,7 +140,7 @@ CREATE TABLE `pago` (
 
 LOCK TABLES `pago` WRITE;
 /*!40000 ALTER TABLE `pago` DISABLE KEYS */;
-INSERT INTO `pago` VALUES (1,1,'Seña de reserva','2026-09-14 21:52:54',1000.00,0,NULL,NULL);
+INSERT INTO `pago` VALUES (1,1,'Seña de reserva','2026-09-14 21:52:54',1000.00,0,NULL,NULL),(2,8,'prueba','2026-09-17 15:52:59',100000.00,1,NULL,1),(3,6,'Multa por finalización anticipada','2026-09-17 16:51:28',6000.00,0,NULL,NULL);
 /*!40000 ALTER TABLE `pago` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -194,13 +194,13 @@ CREATE TABLE `reserva` (
   PRIMARY KEY (`ID_Reserva`),
   KEY `ID_Inquilino_idx` (`ID_Inquilino`),
   KEY `ID_Inmueble_idx` (`ID_Inmueble`),
-  KEY `FK_Reserva_CreadoPor_idx` (`CreadoPor`),
-  KEY `FK_Reserva_TerminadoPor_idx` (`TerminadoPor`),
-  CONSTRAINT `ID_Inmueble` FOREIGN KEY (`ID_Inmueble`) REFERENCES `inmueble` (`ID_Inmueble`),
-  CONSTRAINT `ID_Inquilino` FOREIGN KEY (`ID_Inquilino`) REFERENCES `inquilino` (`ID_Inquilino`),
+  KEY `FK_Reserva_CreadoPor` (`CreadoPor`),
+  KEY `FK_Reserva_TerminadoPor` (`TerminadoPor`),
   CONSTRAINT `FK_Reserva_CreadoPor` FOREIGN KEY (`CreadoPor`) REFERENCES `usuario` (`ID_Usuario`),
-  CONSTRAINT `FK_Reserva_TerminadoPor` FOREIGN KEY (`TerminadoPor`) REFERENCES `usuario` (`ID_Usuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `FK_Reserva_TerminadoPor` FOREIGN KEY (`TerminadoPor`) REFERENCES `usuario` (`ID_Usuario`),
+  CONSTRAINT `ID_Inmueble` FOREIGN KEY (`ID_Inmueble`) REFERENCES `inmueble` (`ID_Inmueble`),
+  CONSTRAINT `ID_Inquilino` FOREIGN KEY (`ID_Inquilino`) REFERENCES `inquilino` (`ID_Inquilino`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -209,7 +209,7 @@ CREATE TABLE `reserva` (
 
 LOCK TABLES `reserva` WRITE;
 /*!40000 ALTER TABLE `reserva` DISABLE KEYS */;
-INSERT INTO `reserva` VALUES (1,3,1,'2026-09-09','2026-09-20','2026-09-15 09:54:52',1,0.00,NULL,NULL),(2,2,1,'2026-09-21','2026-09-30',NULL,0,5000.00,NULL,NULL),(3,3,1,'2026-10-01','2026-10-15',NULL,0,5000.00,NULL,NULL),(4,1,1,'2026-10-16','2026-10-20',NULL,0,5000.00,NULL,NULL),(5,4,2,'2026-09-18','2026-09-21',NULL,0,10000.00,NULL,NULL),(6,2,3,'2026-09-18','2026-09-21',NULL,0,6000.00,NULL,NULL),(7,2,4,'2026-09-16','2026-09-30',NULL,0,7000.00,NULL,NULL);
+INSERT INTO `reserva` VALUES (1,3,1,'2026-09-09','2026-09-20','2026-09-15 09:54:52',1,0.00,NULL,NULL),(2,2,1,'2026-09-21','2026-09-30',NULL,0,5000.00,NULL,NULL),(3,3,1,'2026-10-01','2026-10-15',NULL,0,5000.00,NULL,NULL),(4,1,1,'2026-10-16','2026-10-20',NULL,0,5000.00,NULL,NULL),(5,4,2,'2026-09-18','2026-09-21',NULL,0,10000.00,NULL,NULL),(6,2,3,'2026-09-18','2026-09-21','2026-09-19 00:00:00',1,6000.00,NULL,1),(7,2,4,'2026-09-16','2026-09-30',NULL,0,7000.00,NULL,NULL),(8,5,2,'2026-09-17','2026-09-18',NULL,0,10000.00,1,NULL);
 /*!40000 ALTER TABLE `reserva` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -277,4 +277,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-17  7:13:29
+-- Dump completed on 2026-09-17 17:46:38
