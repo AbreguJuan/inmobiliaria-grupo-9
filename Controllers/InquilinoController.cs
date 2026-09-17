@@ -16,30 +16,45 @@ namespace inmobiliaria_grupo_9.Controllers
         }
 
         // GET: Inquilino
-        public IActionResult Index(string busqueda)
+       public IActionResult Index(string busqueda, int pagina = 1)
+{
+    try
+    {
+        const int tamPagina = 5;
+        IList<Inquilino> inquilinos;
+
+        if (!string.IsNullOrWhiteSpace(busqueda))
         {
-            try
-            {
-                IList<Inquilino> inquilinos;
-
-                if (!string.IsNullOrWhiteSpace(busqueda))
-                {
-                    inquilinos = _repositorioInquilino.Buscar(busqueda);
-                }
-                else
-                {
-                    inquilinos = _repositorioInquilino.ObtenerLista();
-                }
-
-                ViewBag.Busqueda = busqueda;
-                return View(inquilinos);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al obtener inquilinos: {ex.Message}");
-                return View(new List<Inquilino>());
-            }
+            inquilinos = _repositorioInquilino.Buscar(busqueda);
+            ViewBag.TotalPaginas = 1;
         }
+        else
+        {
+            int totalRegistros = _repositorioInquilino.ObtenerCantidad();
+
+            int totalPaginas = (int)Math.Ceiling(
+                (double)totalRegistros / tamPagina
+            );
+
+            inquilinos = _repositorioInquilino.ObtenerLista(
+                pagina,
+                tamPagina
+            );
+
+            ViewBag.TotalPaginas = totalPaginas;
+        }
+
+        ViewBag.PaginaActual = pagina;
+        ViewBag.Busqueda = busqueda;
+
+        return View(inquilinos);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al obtener inquilinos: {ex.Message}");
+        return View(new List<Inquilino>());
+    }
+}
 
         // GET: Inquilino/Details/5
         public IActionResult Details(int id)

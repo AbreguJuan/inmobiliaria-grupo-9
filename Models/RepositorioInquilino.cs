@@ -190,7 +190,7 @@ namespace inmobiliaria_grupo_9.Models
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = @"SELECT COUNT(ID_Inquilino)
-                               FROM ID_Inquilino";
+               FROM inquilino";
 
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
