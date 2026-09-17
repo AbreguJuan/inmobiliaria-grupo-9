@@ -9,9 +9,11 @@ namespace inmobiliaria_grupo_9.Models
             int idReservaExcluida = 0
         );
 
-        int FinalizarReserva(int idReserva, DateTime fechaFinalizacion, int idUsuario);
-
-        int RenovarReserva(int idReserva, DateTime nuevaFechaHasta);
+        int FinalizarReserva(
+            int idReserva,
+            DateTime fechaFinalizacion,
+            int idUsuario
+        );
 
         IList<Reserva> ObtenerPorInmueble(int idInmueble);
     }

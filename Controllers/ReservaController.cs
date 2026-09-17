@@ -381,71 +381,189 @@ _repositorioReserva.FinalizarReserva(
         }
 
         // GET: Reserva/Renovar/5
-        public IActionResult Renovar(int id)
+       // GET: Reserva/Renovar/5
+public IActionResult Renovar(int id)
+{
+    var reserva = _repositorioReserva.ObtenerPorId(id);
+
+    if (reserva == null)
+    {
+        return NotFound();
+    }
+
+    if (reserva.Finalizada)
+    {
+        return RedirectToAction(nameof(Index));
+    }
+
+    return View(reserva);
+}
+
+
+// POST: Reserva/Renovar
+[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult RenovarConfirmado(
+    int id,
+    DateTime nuevaFechaHasta)
+{
+    try
+    {
+        var reservaOriginal =
+            _repositorioReserva.ObtenerPorId(id);
+
+        if (reservaOriginal == null)
         {
-            var reserva = _repositorioReserva.ObtenerPorId(id);
-
-            if (reserva == null)
-            {
-                return NotFound();
-            }
-
-            if (reserva.Finalizada)
-            {
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(reserva);
+            return NotFound();
         }
 
-
-        // POST: Reserva/Renovar
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult RenovarConfirmado(int id, DateTime nuevaFechaHasta)
+        if (reservaOriginal.Finalizada)
         {
-            var reserva = _repositorioReserva.ObtenerPorId(id);
-
-            if (reserva == null)
-            {
-                return NotFound();
-            }
-
-            if (reserva.Finalizada)
-            {
-                return RedirectToAction(nameof(Index));
-            }
-
-            // La nueva fecha tiene que ser posterior a la fecha Hasta actual
-            if (nuevaFechaHasta <= reserva.Hasta)
-            {
-                ModelState.AddModelError(
-                    "",
-                    "La nueva fecha de finalización debe ser posterior a la fecha actual."
-                );
-
-                return View("Renovar", reserva);
-            }
-
-            // Controlamos que la extensión no se superponga
-            // con otra reserva del mismo inmueble
-            if (_repositorioReserva.ExisteSuperposicion(
-                reserva.IdInmueble,
-                reserva.Hasta,
-                nuevaFechaHasta,
-                reserva.IdReserva))
-            {
-                ModelState.AddModelError(
-                    "",
-                    "No se puede renovar porque el inmueble tiene otra reserva en ese período."
-                );
-
-                return View("Renovar", reserva);
-            }
-
-            _repositorioReserva.RenovarReserva(id, nuevaFechaHasta);
-
             return RedirectToAction(nameof(Index));
         }
+
+        // La nueva reserva comienza cuando termina la original
+        DateTime nuevaFechaDesde = reservaOriginal.Hasta;
+
+        if (nuevaFechaHasta <= nuevaFechaDesde)
+        {
+            ModelState.AddModelError(
+                "",
+                "La nueva fecha de finalización debe ser posterior a la fecha de finalización de la reserva original."
+            );
+
+            return View("Renovar", reservaOriginal);
+        }
+
+        // Verificamos que no exista otra reserva
+        // para el inmueble durante el nuevo período
+        if (_repositorioReserva.ExisteSuperposicion(
+            reservaOriginal.IdInmueble,
+            nuevaFechaDesde,
+            nuevaFechaHasta,
+            reservaOriginal.IdReserva))
+        {
+            ModelState.AddModelError(
+                "",
+                "No se puede renovar porque el inmueble tiene otra reserva en ese período."
+            );
+
+            return View("Renovar", reservaOriginal);
+        }
+
+        var inmueble =
+            _repositorioInmueble.ObtenerPorId(
+                reservaOriginal.IdInmueble
+            );
+
+        if (inmueble == null || !inmueble.Habilitado)
+        {
+            ModelState.AddModelError(
+                "",
+                "El inmueble no se encuentra disponible para renovar."
+            );
+
+            return View("Renovar", reservaOriginal);
+        }
+
+        // Usuario que realiza la renovación
+        var claimId = User.Claims
+            .FirstOrDefault(
+                c => c.Type == ClaimTypes.NameIdentifier
+            )?.Value;
+
+        int? idUsuario = null;
+
+        if (claimId != null)
+        {
+            idUsuario = int.Parse(claimId);
+        }
+
+        // IMPORTANTE:
+        // Creamos una reserva NUEVA.
+        // La reserva original NO se modifica.
+        var nuevaReserva = new Reserva
+        {
+            IdInquilino = reservaOriginal.IdInquilino,
+            IdInmueble = reservaOriginal.IdInmueble,
+
+            Desde = nuevaFechaDesde,
+            Hasta = nuevaFechaHasta,
+
+            // Precio actual del inmueble
+            MontoDiario = inmueble.PrecioXDia,
+
+            Finalizada = false,
+            FechaFinalizacion = null,
+
+            CreadoPor = idUsuario
+        };
+
+        int nuevaReservaId =
+            _repositorioReserva.Alta(nuevaReserva);
+
+        if (nuevaReservaId <= 0)
+        {
+            ModelState.AddModelError(
+                "",
+                "No se pudo generar la nueva reserva."
+            );
+
+            return View("Renovar", reservaOriginal);
+        }
+
+        // Calculamos el total de la nueva reserva
+        int cantidadDias =
+            (nuevaReserva.Hasta.Date -
+             nuevaReserva.Desde.Date).Days;
+
+        decimal totalReserva =
+            cantidadDias * nuevaReserva.MontoDiario;
+
+        // Calculamos la seña de la nueva reserva
+        decimal importeSenia =
+            totalReserva *
+            inmueble.PorcentajeReserva / 100m;
+
+        // Registramos automáticamente la seña
+        var pagoSenia = new Pago
+        {
+            IdReserva = nuevaReservaId,
+
+            Concepto =
+                $"Seña de reserva ({inmueble.PorcentajeReserva:0.##}%)",
+
+            FechaPago = DateTime.Now,
+            Importe = importeSenia,
+            Anulado = false,
+            CreadoPor = idUsuario
+        };
+
+        _repositorioPago.Alta(pagoSenia);
+
+        return RedirectToAction(nameof(Index));
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(
+            $"Error al renovar reserva: {ex.Message}"
+        );
+
+        var reserva =
+            _repositorioReserva.ObtenerPorId(id);
+
+        if (reserva == null)
+        {
+            return NotFound();
+        }
+
+        ModelState.AddModelError(
+            "",
+            "Ocurrió un error al renovar la reserva."
+        );
+
+        return View("Renovar", reserva);
+    }
+}
     }
 }

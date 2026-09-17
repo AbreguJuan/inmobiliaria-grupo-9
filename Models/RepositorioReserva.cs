@@ -307,42 +307,48 @@ namespace inmobiliaria_grupo_9.Models
             return r;
         }
 
-        public bool ExisteSuperposicion(
-            int idInmueble,
-            DateTime desde,
-            DateTime hasta,
-            int idReservaExcluida = 0)
+       public bool ExisteSuperposicion(
+    int idInmueble,
+    DateTime desde,
+    DateTime hasta,
+    int idReservaExcluida = 0)
+{
+    bool existe = false;
+
+    using (var connection = new MySqlConnection(connectionString))
+    {
+        string sql = @"
+            SELECT COUNT(*)
+            FROM reserva
+            WHERE ID_Inmueble = @idInmueble
+            AND ID_Reserva <> @idExcluir
+            AND Desde < @hasta
+            AND (
+                CASE
+                    WHEN Finalizada = 1
+                         AND FechaFinalizacion IS NOT NULL
+                    THEN FechaFinalizacion
+                    ELSE Hasta
+                END
+            ) > @desde;";
+
+        using (var command = new MySqlCommand(sql, connection))
         {
-            bool existe = false;
+            command.Parameters.AddWithValue("@idInmueble", idInmueble);
+            command.Parameters.AddWithValue("@idExcluir", idReservaExcluida);
+            command.Parameters.AddWithValue("@desde", desde);
+            command.Parameters.AddWithValue("@hasta", hasta);
 
-            using (var connection = new MySqlConnection(connectionString))
-            {
-                string sql = @"SELECT COUNT(*)
-                    FROM reserva
-                    WHERE ID_Inmueble = @idInmueble
-                    AND ID_Reserva <> @idExcluir
-                    AND Desde < @hasta
-                    AND Hasta > @desde";
+            connection.Open();
 
-                using (var command = new MySqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@idInmueble", idInmueble);
-                    command.Parameters.AddWithValue("@idExcluir", idReservaExcluida);
-                    command.Parameters.AddWithValue("@desde", desde);
-                    command.Parameters.AddWithValue("@hasta", hasta);
+            int cantidad = Convert.ToInt32(command.ExecuteScalar());
 
-                    connection.Open();
-
-                    int cantidad = Convert.ToInt32(command.ExecuteScalar());
-
-                    existe = cantidad > 0;
-
-                    connection.Close();
-                }
-            }
-
-            return existe;
+            existe = cantidad > 0;
         }
+    }
+
+    return existe;
+}
 
         public int FinalizarReserva(int idReserva, DateTime fechaFinalizacion, int idUsuario)
         {
@@ -371,30 +377,7 @@ namespace inmobiliaria_grupo_9.Models
             return res;
         }
 
-        public int RenovarReserva(int idReserva, DateTime nuevaFechaHasta)
-        {
-            int res = -1;
-
-            using (var connection = new MySqlConnection(connectionString))
-            {
-                string sql = @"UPDATE reserva
-                       SET Hasta = @nuevaFechaHasta
-                       WHERE ID_Reserva = @idReserva
-                       AND Finalizada = 0";
-
-                using (var command = new MySqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@nuevaFechaHasta", nuevaFechaHasta);
-                    command.Parameters.AddWithValue("@idReserva", idReserva);
-
-                    connection.Open();
-                    res = command.ExecuteNonQuery();
-                }
-            }
-
-            return res;
-        }
-
+      
         public IList<Reserva> ObtenerPorInmueble(int idInmueble)
         {
             var res = new List<Reserva>();
