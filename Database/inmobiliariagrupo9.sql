@@ -55,8 +55,9 @@ CREATE TABLE `inmueble` (
   `Provincia` varchar(45) NOT NULL,
   `Localidad` varchar(45) NOT NULL,
   `Direccion` varchar(45) NOT NULL,
-  `PrecioXDia` double NOT NULL,
-  `Metros_Cuadrados` int NOT NULL,
+`PrecioXDia` double NOT NULL,
+`PorcentajeReserva` decimal(5,2) NOT NULL DEFAULT '30.00',
+`Metros_Cuadrados` int NOT NULL,
   `Nro_Ambientes` int NOT NULL,
   `Nro_Banios` int NOT NULL,
   `ID_Propietario` int NOT NULL,
@@ -76,7 +77,12 @@ CREATE TABLE `inmueble` (
 
 LOCK TABLES `inmueble` WRITE;
 /*!40000 ALTER TABLE `inmueble` DISABLE KEYS */;
-INSERT INTO `inmueble` VALUES (1,2,'Buenos Aires','Palermo','Av. Santa Fe 1234',5000,45,2,1,1,1,NULL),(2,3,'San Luis','Merlo','Av. Siempre Saa',10000,30,2,1,6,1,NULL),(3,1,'Santiago del Estero','Capital','Av. Juan Domingo Peron',6000,26,2,1,6,0,NULL),(4,1,'Tucuman','Tucuman','Cordoba 256',7000,30,3,1,3,1,NULL),(8,1,'La Pampa','Santa Rosa','Francia 123',7000,45,2,1,6,1,'/images/inmuebles/eb43844d-75f1-44a9-8fbf-ca0d3ef174cc.jpg');
+INSERT INTO `inmueble` VALUES
+(1,2,'Buenos Aires','Palermo','Av. Santa Fe 1234',5000,30.00,45,2,1,1,1,NULL),
+(2,3,'San Luis','Merlo','Av. Siempre Saa',10000,30.00,30,2,1,6,1,NULL),
+(3,1,'Santiago del Estero','Capital','Av. Juan Domingo Peron',6000,30.00,26,2,1,6,0,NULL),
+(4,1,'Tucuman','Tucuman','Cordoba 256',7000,30.00,30,3,1,3,1,NULL),
+(8,1,'La Pampa','Santa Rosa','Francia 123',7000,30.00,45,2,1,6,1,'/images/inmuebles/eb43844d-75f1-44a9-8fbf-ca0d3ef174cc.jpg');
 /*!40000 ALTER TABLE `inmueble` ENABLE KEYS */;
 UNLOCK TABLES;
 

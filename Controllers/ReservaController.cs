@@ -85,50 +85,110 @@ namespace inmobiliaria_grupo_9.Controllers
         }
 
         // POST: Reserva/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(Reserva reserva)
+      [HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult Create(Reserva reserva)
+{
+    try
+    {
+        var inmueble =
+            _repositorioInmueble.ObtenerPorId(reserva.IdInmueble);
+
+        if (inmueble == null || !inmueble.Habilitado)
         {
-            try
-            {
-                var inmueble = _repositorioInmueble.ObtenerPorId(reserva.IdInmueble);
-
-                if (inmueble == null || !inmueble.Habilitado)
-                {
-                    ModelState.AddModelError("IdInmueble", "Ese inmueble no está disponible para reservar");
-                }
-                else if (reserva.Hasta <= reserva.Desde)
-                {
-                    ModelState.AddModelError("Hasta", "La fecha de fin debe ser posterior a la de inicio");
-                }
-                else if (_repositorioReserva.ExisteSuperposicion(reserva.IdInmueble, reserva.Desde, reserva.Hasta))
-                {
-                    ModelState.AddModelError("", "Ese inmueble ya tiene una reserva en ese rango de fechas");
-                }
-
-                if (ModelState.IsValid && inmueble != null)
-                {
-                    var claimId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-                    if (claimId != null) 
-                    {
-                        reserva.CreadoPor = int.Parse(claimId);
-                    }
-
-                    reserva.MontoDiario = Convert.ToDecimal(inmueble.PrecioXDia);
-                    _repositorioReserva.Alta(reserva);
-                    return RedirectToAction(nameof(Index));
-                }
-
-                CargarListas(reserva.IdInquilino, reserva.IdInmueble);
-                return View(reserva);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al crear reserva: {ex.Message}");
-                CargarListas(reserva.IdInquilino, reserva.IdInmueble);
-                return View(reserva);
-            }
+            ModelState.AddModelError(
+                "IdInmueble",
+                "Ese inmueble no está disponible para reservar"
+            );
         }
+        else if (reserva.Hasta <= reserva.Desde)
+        {
+            ModelState.AddModelError(
+                "Hasta",
+                "La fecha de fin debe ser posterior a la de inicio"
+            );
+        }
+        else if (_repositorioReserva.ExisteSuperposicion(
+            reserva.IdInmueble,
+            reserva.Desde,
+            reserva.Hasta))
+        {
+            ModelState.AddModelError(
+                "",
+                "Ese inmueble ya tiene una reserva en ese rango de fechas"
+            );
+        }
+
+        if (ModelState.IsValid && inmueble != null)
+        {
+            // Usuario que crea la reserva
+            var claimId = User.Claims
+                .FirstOrDefault(
+                    c => c.Type == ClaimTypes.NameIdentifier
+                )?.Value;
+
+            if (claimId != null)
+            {
+                reserva.CreadoPor = int.Parse(claimId);
+            }
+
+            // Guardamos el precio por día al momento de reservar
+            reserva.MontoDiario = inmueble.PrecioXDia;
+
+            // Creamos la reserva
+            int idReserva =
+                _repositorioReserva.Alta(reserva);
+
+            // Calculamos el total
+            int cantidadDias =
+                (reserva.Hasta.Date - reserva.Desde.Date).Days;
+
+            decimal totalReserva =
+                cantidadDias * reserva.MontoDiario;
+
+            // Calculamos la seña
+            decimal importeSenia =
+                totalReserva *
+                inmueble.PorcentajeReserva / 100m;
+
+            // Registramos la seña en Pagos
+            var pagoSenia = new Pago
+            {
+                IdReserva = idReserva,
+                Concepto =
+                    $"Seña de reserva ({inmueble.PorcentajeReserva:0.##}%)",
+                FechaPago = DateTime.Now,
+                Importe = importeSenia,
+                Anulado = false,
+                CreadoPor = reserva.CreadoPor
+            };
+
+            _repositorioPago.Alta(pagoSenia);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        CargarListas(
+            reserva.IdInquilino,
+            reserva.IdInmueble
+        );
+
+        return View(reserva);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(
+            $"Error al crear reserva: {ex.Message}"
+        );
+
+        CargarListas(
+            reserva.IdInquilino,
+            reserva.IdInmueble
+        );
+
+        return View(reserva);
+    }
+}
 
         // GET: Reserva/Edit/5
         public IActionResult Edit(int id)
@@ -280,28 +340,36 @@ namespace inmobiliaria_grupo_9.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Registramos la multa como un pago de la reserva
-                var pago = new Pago
-                {
-                    IdReserva = id,
-                    Concepto = "Multa por finalización anticipada",
-                    FechaPago = DateTime.Now,
-                    Importe = multa,
-                    Anulado = false
-                };
+               // Capturamos el usuario que realiza la operación
+var claimId = User.Claims
+    .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-                _repositorioPago.Alta(pago);
+int idUsuario = 0;
 
-                // Capturamos el ID del usuario logueado desde la cookie de sesión
-                var claimId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-                int idUsuario = 0; 
-                if (claimId != null) 
-                {
-                    idUsuario = int.Parse(claimId);
-                }
+if (claimId != null)
+{
+    idUsuario = int.Parse(claimId);
+}
 
-                // Recién después de registrar el pago, finalizamos la reserva pasando el idUsuario.
-                _repositorioReserva.FinalizarReserva(id, fechaFinalizacion, idUsuario);
+// Registramos la multa como un pago de la reserva
+var pago = new Pago
+{
+    IdReserva = id,
+    Concepto = "Multa por finalización anticipada",
+    FechaPago = DateTime.Now,
+    Importe = multa,
+    Anulado = false,
+    CreadoPor = idUsuario > 0 ? idUsuario : null
+};
+
+_repositorioPago.Alta(pago);
+
+// Recién después de registrar el pago finalizamos la reserva
+_repositorioReserva.FinalizarReserva(
+    id,
+    fechaFinalizacion,
+    idUsuario
+);
 
                 return RedirectToAction(nameof(Index));
             }

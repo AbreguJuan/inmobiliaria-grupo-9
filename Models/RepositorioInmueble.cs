@@ -17,9 +17,9 @@ namespace inmobiliaria_grupo_9.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"INSERT INTO Inmueble 
-                    (ID_TipoInmueble, Provincia, Localidad, Direccion, PrecioXDia, Metros_Cuadrados, Nro_Ambientes, Nro_Banios, ID_Propietario, Habilitado, FotoPortada)
-                    VALUES (@tipo, @provincia, @localidad, @direccion, @precio, @metros, @ambientes, @banios, @idPropietario, @habilitado, @fotoPortada);
-                    SELECT LAST_INSERT_ID();";
+    (ID_TipoInmueble, Provincia, Localidad, Direccion, PrecioXDia, PorcentajeReserva, Metros_Cuadrados, Nro_Ambientes, Nro_Banios, ID_Propietario, Habilitado, FotoPortada)
+    VALUES (@tipo, @provincia, @localidad, @direccion, @precio, @porcentajeReserva, @metros, @ambientes, @banios, @idPropietario, @habilitado, @fotoPortada);
+    SELECT LAST_INSERT_ID();";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
@@ -28,6 +28,7 @@ namespace inmobiliaria_grupo_9.Models
                     command.Parameters.AddWithValue("@localidad", i.Localidad);
                     command.Parameters.AddWithValue("@direccion", i.Direccion);
                     command.Parameters.AddWithValue("@precio", i.PrecioXDia);
+                    command.Parameters.AddWithValue("@porcentajeReserva", i.PorcentajeReserva);
                     command.Parameters.AddWithValue("@metros", i.MetrosCuadrados);
                     command.Parameters.AddWithValue("@ambientes", i.NroAmbientes);
                     command.Parameters.AddWithValue("@banios", i.NroBanios);
@@ -67,7 +68,7 @@ namespace inmobiliaria_grupo_9.Models
             {
                 string sql = @"UPDATE Inmueble SET
                     ID_TipoInmueble=@idTipo, Provincia=@provincia, Localidad=@localidad, Direccion=@direccion,
-                    PrecioXDia=@precio, Metros_Cuadrados=@metros, Nro_Ambientes=@ambientes,
+                    PrecioXDia=@precio, PorcentajeReserva=@porcentajeReserva, Metros_Cuadrados=@metros, Nro_Ambientes=@ambientes,
                     Nro_Banios=@banios, ID_Propietario=@idPropietario, Habilitado=@habilitado, FotoPortada=@fotoPortada
                     WHERE ID_Inmueble=@id";
                 using (var command = new MySqlCommand(sql, connection))
@@ -77,6 +78,7 @@ namespace inmobiliaria_grupo_9.Models
                     command.Parameters.AddWithValue("@localidad", i.Localidad);
                     command.Parameters.AddWithValue("@direccion", i.Direccion);
                     command.Parameters.AddWithValue("@precio", i.PrecioXDia);
+                    command.Parameters.AddWithValue("@porcentajeReserva", i.PorcentajeReserva);
                     command.Parameters.AddWithValue("@metros", i.MetrosCuadrados);
                     command.Parameters.AddWithValue("@ambientes", i.NroAmbientes);
                     command.Parameters.AddWithValue("@banios", i.NroBanios);
@@ -99,7 +101,7 @@ namespace inmobiliaria_grupo_9.Models
             {
                 string sql = @$"
                     SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
-                        i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
+                        i.PrecioXDia, i.PorcentajeReserva, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
                         i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado, i.FotoPortada,
                         p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
                         t.Nombre AS NombreTipo
@@ -127,6 +129,7 @@ namespace inmobiliaria_grupo_9.Models
                             Localidad = reader.GetString("Localidad"),
                             Direccion = reader.GetString("Direccion"),
                             PrecioXDia = Convert.ToDecimal(reader.GetDouble("PrecioXDia")),
+PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                             MetrosCuadrados = Convert.ToDecimal(reader.GetInt32("MetrosCuadrados")),
                             NroAmbientes = reader.GetInt32("NroAmbientes"),
                             NroBanios = reader.GetInt32("NroBanios"),
@@ -170,7 +173,7 @@ namespace inmobiliaria_grupo_9.Models
             {
                 string sql = @"
                     SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
-                        i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
+                       i.PrecioXDia, i.PorcentajeReserva, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
                         i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado, i.FotoPortada,
                         p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
                         t.Nombre AS NombreTipo
@@ -198,6 +201,7 @@ namespace inmobiliaria_grupo_9.Models
                             Localidad = reader.GetString("Localidad"),
                             Direccion = reader.GetString("Direccion"),
                             PrecioXDia = Convert.ToDecimal(reader.GetDouble("PrecioXDia")),
+PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                             MetrosCuadrados = Convert.ToDecimal(reader.GetInt32("MetrosCuadrados")),
                             NroAmbientes = reader.GetInt32("NroAmbientes"),
                             NroBanios = reader.GetInt32("NroBanios"),
@@ -225,7 +229,7 @@ namespace inmobiliaria_grupo_9.Models
             {
                 string sql = @"
                     SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
-                        i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
+                        i.PrecioXDia, i.PorcentajeReserva, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
                         i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado, i.FotoPortada,
                         p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
                         t.Nombre AS NombreTipo
@@ -252,6 +256,7 @@ namespace inmobiliaria_grupo_9.Models
                             Localidad = reader.GetString("Localidad"),
                             Direccion = reader.GetString("Direccion"),
                             PrecioXDia = Convert.ToDecimal(reader.GetDouble("PrecioXDia")),
+PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                             MetrosCuadrados = Convert.ToDecimal(reader.GetInt32("MetrosCuadrados")),
                             NroAmbientes = reader.GetInt32("NroAmbientes"),
                             NroBanios = reader.GetInt32("NroBanios"),
@@ -346,7 +351,7 @@ namespace inmobiliaria_grupo_9.Models
 
                 command.CommandText = $@"
             SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
-                i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
+               i.PrecioXDia, i.PorcentajeReserva, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
                 i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado, i.FotoPortada,
                 p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
                 t.Nombre AS NombreTipo
@@ -372,6 +377,7 @@ namespace inmobiliaria_grupo_9.Models
                         Localidad = reader.GetString("Localidad"),
                         Direccion = reader.GetString("Direccion"),
                         PrecioXDia = Convert.ToDecimal(reader.GetDouble("PrecioXDia")),
+PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                         MetrosCuadrados = Convert.ToDecimal(reader.GetInt32("MetrosCuadrados")),
                         NroAmbientes = reader.GetInt32("NroAmbientes"),
                         NroBanios = reader.GetInt32("NroBanios"),

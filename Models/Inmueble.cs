@@ -27,6 +27,9 @@ namespace inmobiliaria_grupo_9.Models
 
         [Display(Name = "Precio por día")]
         public decimal PrecioXDia { get; set; }
+        [Range(0, 100, ErrorMessage = "El porcentaje de reserva debe estar entre 0 y 100")]
+[Display(Name = "Porcentaje de reserva")]
+public decimal PorcentajeReserva { get; set; }
 
         [Column("Metros_Cuadrados")]
         [Display(Name = "Metros cuadrados")]
