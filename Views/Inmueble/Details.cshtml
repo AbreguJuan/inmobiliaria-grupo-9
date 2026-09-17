@@ -110,6 +110,87 @@
         }
     </div>
 
+    <h4 class="mt-4">Calendario de disponibilidad</h4>
+    <div class="d-flex align-items-center mb-2">
+        <button type="button" id="btnMesAnterior" class="btn btn-sm btn-outline-secondary">&laquo; Anterior</button>
+        <span id="tituloMes" class="mx-3 fw-bold"></span>
+        <button type="button" id="btnMesSiguiente" class="btn btn-sm btn-outline-secondary">Siguiente &raquo;</button>
+    </div>
+    <div class="mb-2">
+        <span class="badge bg-danger">&nbsp;&nbsp;</span> Ocupado
+        <span class="badge bg-success ms-3">&nbsp;&nbsp;</span> Disponible
+    </div>
+    <table class="table table-bordered text-center" id="calendario">
+        <thead>
+            <tr>
+                <th>Dom</th>
+                <th>Lun</th>
+                <th>Mar</th>
+                <th>Mié</th>
+                <th>Jue</th>
+                <th>Vie</th>
+                <th>Sáb</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpoCalendario"></tbody>
+    </table>
+
+    <script>
+            const rangosOcupados = @Html.Raw(ViewBag.RangosOcupados ?? "[]");
+
+            let fechaActual = new Date();
+            fechaActual.setDate(1);
+
+            function estaOcupado(fecha) {
+                const f = fecha.toISOString().split('T')[0];
+                return rangosOcupados.some(r => f >= r.desde && f < r.hasta);
+            }
+
+            function renderCalendario() {
+                const anio = fechaActual.getFullYear();
+                const mes = fechaActual.getMonth();
+                const nombresMes = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+                document.getElementById('tituloMes').textContent = `${nombresMes[mes]} ${anio}`;
+
+                const primerDia = new Date(anio, mes, 1);
+                const ultimoDia = new Date(anio, mes + 1, 0);
+                const cuerpo = document.getElementById('cuerpoCalendario');
+                cuerpo.innerHTML = '';
+
+                let fila = document.createElement('tr');
+                for (let i = 0; i < primerDia.getDay(); i++) {
+                    fila.appendChild(document.createElement('td'));
+                }
+
+                for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
+                    const fecha = new Date(anio, mes, dia);
+                    const celda = document.createElement('td');
+                    celda.textContent = dia;
+                    celda.classList.add(estaOcupado(fecha) ? 'bg-danger' : 'bg-success');
+                    celda.classList.add('text-white');
+                    fila.appendChild(celda);
+
+                    if (fecha.getDay() === 6 || dia === ultimoDia.getDate()) {
+                        cuerpo.appendChild(fila);
+                        fila = document.createElement('tr');
+                    }
+                }
+            }
+
+            document.getElementById('btnMesAnterior').addEventListener('click', () => {
+                fechaActual.setMonth(fechaActual.getMonth() - 1);
+                renderCalendario();
+            });
+
+            document.getElementById('btnMesSiguiente').addEventListener('click', () => {
+                fechaActual.setMonth(fechaActual.getMonth() + 1);
+                renderCalendario();
+            });
+
+            renderCalendario();
+    </script>
+
 </dl>
 
 <a asp-action="Edit" asp-route-id="@Model.IdInmueble" class="btn btn-warning">

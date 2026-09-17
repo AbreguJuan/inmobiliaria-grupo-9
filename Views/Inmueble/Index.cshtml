@@ -66,6 +66,16 @@
             </select>
         </div>
         <div class="col-md-2">
+            <label class="form-label">Disponible desde</label>
+            <input type="date" name="fechaDesde" class="form-control"
+                   value="@(ViewBag.FechaDesde != null ? ((DateTime)ViewBag.FechaDesde).ToString("yyyy-MM-dd") : "")" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Disponible hasta</label>
+            <input type="date" name="fechaHasta" class="form-control"
+                   value="@(ViewBag.FechaHasta != null ? ((DateTime)ViewBag.FechaHasta).ToString("yyyy-MM-dd") : "")" />
+        </div>
+        <div class="col-md-2">
             <button type="submit" class="btn btn-primary w-100">Buscar</button>
         </div>
     </div>

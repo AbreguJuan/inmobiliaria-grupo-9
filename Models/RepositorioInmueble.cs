@@ -272,7 +272,9 @@ namespace inmobiliaria_grupo_9.Models
             return res;
         }
 
-        public IList<Inmueble> Buscar(string? texto, decimal? precio = null, string? operadorPrecio = null, bool? habilitado = null, int? ambientesMinimo = null, decimal? metrosMinimo = null, decimal? metrosMaximo = null)
+        public IList<Inmueble> Buscar(string? texto, decimal? precio = null, string? operadorPrecio = null, bool? habilitado = null,
+            int? ambientesMinimo = null, decimal? metrosMinimo = null, decimal? metrosMaximo = null,
+            DateTime? disponibleDesde = null, DateTime? disponibleHasta = null)
         {
             var res = new List<Inmueble>();
             using (var connection = new MySqlConnection(connectionString))
@@ -327,6 +329,17 @@ namespace inmobiliaria_grupo_9.Models
                 {
                     condiciones.Add("i.Metros_Cuadrados <= @metrosMaximo");
                     command.Parameters.AddWithValue("@metrosMaximo", metrosMaximo.Value);
+                }
+                if (disponibleDesde.HasValue && disponibleHasta.HasValue)
+                {
+                    condiciones.Add(@"NOT EXISTS (
+                        SELECT 1 FROM reserva r
+                        WHERE r.ID_Inmueble = i.ID_Inmueble
+                            AND r.Desde < @dispHasta
+                            AND r.Hasta > @dispDesde
+                    )");
+                    command.Parameters.AddWithValue("@dispDesde", disponibleDesde.Value);
+                    command.Parameters.AddWithValue("@dispHasta", disponibleHasta.Value);
                 }
 
                 string where = condiciones.Count > 0 ? "WHERE " + string.Join(" AND ", condiciones) : "";

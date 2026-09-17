@@ -364,6 +364,35 @@ namespace inmobiliaria_grupo_9.Models
 
             return res;
         }
+
+        public IList<Reserva> ObtenerPorInmueble(int idInmueble)
+        {
+            var res = new List<Reserva>();
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT ID_Reserva AS IdReserva, Desde, Hasta, Finalizada
+            FROM reserva
+            WHERE ID_Inmueble = @idInmueble";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@idInmueble", idInmueble);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        res.Add(new Reserva
+                        {
+                            IdReserva = reader.GetInt32("IdReserva"),
+                            Desde = reader.GetDateTime("Desde"),
+                            Hasta = reader.GetDateTime("Hasta"),
+                            Finalizada = reader.GetBoolean("Finalizada"),
+                        });
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
+        }
     }
 }
 

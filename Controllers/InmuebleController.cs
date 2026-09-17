@@ -11,6 +11,7 @@ namespace inmobiliaria_grupo_9.Controllers
         private readonly IRepositorioPropietario _repositorioPropietario;
         private readonly IRepositorioTipoDeInmueble _repositorioTipoDeInmueble;
         private readonly IRepositorioImagenInmueble _repositorioImagen;
+        private readonly IRepositorioReserva _repositorioReserva;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         public InmuebleController(
@@ -18,12 +19,14 @@ namespace inmobiliaria_grupo_9.Controllers
             IRepositorioPropietario repositorioPropietario,
             IRepositorioTipoDeInmueble repositorioTipoDeInmueble,
             IRepositorioImagenInmueble repositorioImagen,
+            IRepositorioReserva repositorioReserva,
             IWebHostEnvironment webHostEnvironment)
         {
             _repositorioInmueble = repositorioInmueble;
             _repositorioPropietario = repositorioPropietario;
             _repositorioTipoDeInmueble = repositorioTipoDeInmueble;
             _repositorioImagen = repositorioImagen;
+            _repositorioReserva = repositorioReserva;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -45,6 +48,7 @@ namespace inmobiliaria_grupo_9.Controllers
 
         public ActionResult Index(string busqueda, decimal? precio, string operadorPrecio, string habilitadoFiltro,
             int? ambientesMinimo, decimal? metrosMinimo, decimal? metrosMaximo,
+            DateTime? fechaDesde, DateTime? fechaHasta,
             int paginaNro = 1, int tamPagina = 10)
         {
             bool? habilitado = habilitadoFiltro switch
@@ -55,10 +59,11 @@ namespace inmobiliaria_grupo_9.Controllers
             };
 
             bool hayFiltros = !string.IsNullOrWhiteSpace(busqueda) || precio.HasValue || habilitado.HasValue
-                || ambientesMinimo.HasValue || metrosMinimo.HasValue || metrosMaximo.HasValue;
+                || ambientesMinimo.HasValue || metrosMinimo.HasValue || metrosMaximo.HasValue
+                || (fechaDesde.HasValue && fechaHasta.HasValue);
 
             IList<Inmueble> lista = hayFiltros
-                ? _repositorioInmueble.Buscar(busqueda, precio, operadorPrecio, habilitado, ambientesMinimo, metrosMinimo, metrosMaximo)
+                ? _repositorioInmueble.Buscar(busqueda, precio, operadorPrecio, habilitado, ambientesMinimo, metrosMinimo, metrosMaximo, fechaDesde, fechaHasta)
                 : _repositorioInmueble.ObtenerLista(paginaNro, tamPagina);
 
             ViewBag.Busqueda = busqueda;
@@ -68,6 +73,8 @@ namespace inmobiliaria_grupo_9.Controllers
             ViewBag.AmbientesMinimo = ambientesMinimo;
             ViewBag.MetrosMinimo = metrosMinimo;
             ViewBag.MetrosMaximo = metrosMaximo;
+            ViewBag.FechaDesde = fechaDesde;
+            ViewBag.FechaHasta = fechaHasta;
 
             if (TempData.ContainsKey("Mensaje")) ViewBag.Mensaje = TempData["Mensaje"];
             if (TempData.ContainsKey("Error")) ViewBag.Error = TempData["Error"];
@@ -82,6 +89,12 @@ namespace inmobiliaria_grupo_9.Controllers
             if (id != 0)
             {
                 entidad.Imagenes = _repositorioImagen.ObtenerPorInmueble(id);
+
+                var reservas = _repositorioReserva.ObtenerPorInmueble(id)
+                    .Where(r => !r.Finalizada)
+                    .Select(r => new { desde = r.Desde.ToString("yyyy-MM-dd"), hasta = r.Hasta.ToString("yyyy-MM-dd") });
+
+                ViewBag.RangosOcupados = System.Text.Json.JsonSerializer.Serialize(reservas);
             }
 
             return View(entidad);
