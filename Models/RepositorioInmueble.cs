@@ -17,9 +17,9 @@ namespace inmobiliaria_grupo_9.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"INSERT INTO Inmueble 
-    (ID_TipoInmueble, Provincia, Localidad, Direccion, PrecioXDia, PorcentajeReserva, Metros_Cuadrados, Nro_Ambientes, Nro_Banios, ID_Propietario, Habilitado, FotoPortada)
-    VALUES (@tipo, @provincia, @localidad, @direccion, @precio, @porcentajeReserva, @metros, @ambientes, @banios, @idPropietario, @habilitado, @fotoPortada);
-    SELECT LAST_INSERT_ID();";
+                    (ID_TipoInmueble, Provincia, Localidad, Direccion, PrecioXDia, Metros_Cuadrados, Nro_Ambientes, Nro_Banios, ID_Propietario, Habilitado, FotoPortada, Cupo, Latitud, Longitud)
+                    VALUES (@tipo, @provincia, @localidad, @direccion, @precio, @metros, @ambientes, @banios, @idPropietario, @habilitado, @fotoPortada, @cupo, @latitud, @longitud);
+                    SELECT LAST_INSERT_ID();";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
@@ -35,6 +35,9 @@ namespace inmobiliaria_grupo_9.Models
                     command.Parameters.AddWithValue("@idPropietario", i.IdPropietario);
                     command.Parameters.AddWithValue("@habilitado", i.Habilitado);
                     command.Parameters.AddWithValue("@fotoPortada", (object?)i.FotoPortada ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@cupo", i.Cupo);
+                    command.Parameters.AddWithValue("@latitud", (object?)i.Latitud ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@longitud", (object?)i.Longitud ?? DBNull.Value);
                     connection.Open();
                     res = System.Convert.ToInt32(command.ExecuteScalar());
                     i.IdInmueble = res;
@@ -69,7 +72,8 @@ namespace inmobiliaria_grupo_9.Models
                 string sql = @"UPDATE Inmueble SET
                     ID_TipoInmueble=@idTipo, Provincia=@provincia, Localidad=@localidad, Direccion=@direccion,
                     PrecioXDia=@precio, PorcentajeReserva=@porcentajeReserva, Metros_Cuadrados=@metros, Nro_Ambientes=@ambientes,
-                    Nro_Banios=@banios, ID_Propietario=@idPropietario, Habilitado=@habilitado, FotoPortada=@fotoPortada
+                    Nro_Banios=@banios, ID_Propietario=@idPropietario, Habilitado=@habilitado, FotoPortada=@fotoPortada,
+                    Cupo=@cupo, Latitud=@latitud, Longitud=@longitud
                     WHERE ID_Inmueble=@id";
                 using (var command = new MySqlCommand(sql, connection))
                 {
@@ -86,6 +90,9 @@ namespace inmobiliaria_grupo_9.Models
                     command.Parameters.AddWithValue("@habilitado", i.Habilitado);
                     command.Parameters.AddWithValue("@id", i.IdInmueble);
                     command.Parameters.AddWithValue("@fotoPortada", (object?)i.FotoPortada ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@cupo", i.Cupo);
+                    command.Parameters.AddWithValue("@latitud", (object?)i.Latitud ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@longitud", (object?)i.Longitud ?? DBNull.Value);
                     connection.Open();
                     res = command.ExecuteNonQuery();
                     connection.Close();
@@ -103,6 +110,7 @@ namespace inmobiliaria_grupo_9.Models
                     SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
                         i.PrecioXDia, i.PorcentajeReserva, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
                         i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado, i.FotoPortada,
+                        i.Cupo, i.Latitud, i.Longitud,
                         p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
                         t.Nombre AS NombreTipo
                     FROM Inmueble i
@@ -129,7 +137,7 @@ namespace inmobiliaria_grupo_9.Models
                             Localidad = reader.GetString("Localidad"),
                             Direccion = reader.GetString("Direccion"),
                             PrecioXDia = Convert.ToDecimal(reader.GetDouble("PrecioXDia")),
-PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
+                            PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                             MetrosCuadrados = Convert.ToDecimal(reader.GetInt32("MetrosCuadrados")),
                             NroAmbientes = reader.GetInt32("NroAmbientes"),
                             NroBanios = reader.GetInt32("NroBanios"),
@@ -142,6 +150,9 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                                 Apellido = reader.GetString("ApellidoPropietario")
                             },
                             FotoPortada = reader.IsDBNull(reader.GetOrdinal("FotoPortada")) ? null : reader.GetString("FotoPortada"),
+                            Cupo = reader.GetInt32("Cupo"),
+                            Latitud = reader.IsDBNull(reader.GetOrdinal("Latitud")) ? null : reader.GetDecimal("Latitud"),
+                            Longitud = reader.IsDBNull(reader.GetOrdinal("Longitud")) ? null : reader.GetDecimal("Longitud"),
                         });
                     }
                     connection.Close();
@@ -173,8 +184,9 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
             {
                 string sql = @"
                     SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
-                       i.PrecioXDia, i.PorcentajeReserva, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
+                        i.PrecioXDia, i.PorcentajeReserva, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
                         i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado, i.FotoPortada,
+                        i.Cupo, i.Latitud, i.Longitud,
                         p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
                         t.Nombre AS NombreTipo
                     FROM Inmueble i
@@ -201,7 +213,7 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                             Localidad = reader.GetString("Localidad"),
                             Direccion = reader.GetString("Direccion"),
                             PrecioXDia = Convert.ToDecimal(reader.GetDouble("PrecioXDia")),
-PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
+                            PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                             MetrosCuadrados = Convert.ToDecimal(reader.GetInt32("MetrosCuadrados")),
                             NroAmbientes = reader.GetInt32("NroAmbientes"),
                             NroBanios = reader.GetInt32("NroBanios"),
@@ -214,6 +226,9 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                                 Apellido = reader.GetString("ApellidoPropietario")
                             },
                             FotoPortada = reader.IsDBNull(reader.GetOrdinal("FotoPortada")) ? null : reader.GetString("FotoPortada"),
+                            Cupo = reader.GetInt32("Cupo"),
+                            Latitud = reader.IsDBNull(reader.GetOrdinal("Latitud")) ? null : reader.GetDecimal("Latitud"),
+                            Longitud = reader.IsDBNull(reader.GetOrdinal("Longitud")) ? null : reader.GetDecimal("Longitud"),
                         };
                     }
                     connection.Close();
@@ -231,6 +246,7 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                     SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
                         i.PrecioXDia, i.PorcentajeReserva, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
                         i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado, i.FotoPortada,
+                        i.Cupo, i.Latitud, i.Longitud,
                         p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
                         t.Nombre AS NombreTipo
                     FROM Inmueble i
@@ -256,7 +272,7 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                             Localidad = reader.GetString("Localidad"),
                             Direccion = reader.GetString("Direccion"),
                             PrecioXDia = Convert.ToDecimal(reader.GetDouble("PrecioXDia")),
-PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
+                            PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                             MetrosCuadrados = Convert.ToDecimal(reader.GetInt32("MetrosCuadrados")),
                             NroAmbientes = reader.GetInt32("NroAmbientes"),
                             NroBanios = reader.GetInt32("NroBanios"),
@@ -269,6 +285,9 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                                 Apellido = reader.GetString("ApellidoPropietario")
                             },
                             FotoPortada = reader.IsDBNull(reader.GetOrdinal("FotoPortada")) ? null : reader.GetString("FotoPortada"),
+                            Cupo = reader.GetInt32("Cupo"),
+                            Latitud = reader.IsDBNull(reader.GetOrdinal("Latitud")) ? null : reader.GetDecimal("Latitud"),
+                            Longitud = reader.IsDBNull(reader.GetOrdinal("Longitud")) ? null : reader.GetDecimal("Longitud"),
                         });
                     }
                     connection.Close();
@@ -279,7 +298,9 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
 
         public IList<Inmueble> Buscar(string? texto, decimal? precio = null, string? operadorPrecio = null, bool? habilitado = null,
             int? ambientesMinimo = null, decimal? metrosMinimo = null, decimal? metrosMaximo = null,
-            DateTime? disponibleDesde = null, DateTime? disponibleHasta = null)
+            DateTime? disponibleDesde = null, DateTime? disponibleHasta = null,
+            int? cupoMinimo = null, decimal? latitud = null, decimal? longitud = null, decimal? radioKm = null,
+            int? idPropietario = null)
         {
             var res = new List<Inmueble>();
             using (var connection = new MySqlConnection(connectionString))
@@ -335,6 +356,29 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                     condiciones.Add("i.Metros_Cuadrados <= @metrosMaximo");
                     command.Parameters.AddWithValue("@metrosMaximo", metrosMaximo.Value);
                 }
+                if (cupoMinimo.HasValue)
+                {
+                    condiciones.Add("i.Cupo >= @cupoMinimo");
+                    command.Parameters.AddWithValue("@cupoMinimo", cupoMinimo.Value);
+                }
+
+                if (idPropietario.HasValue)
+                {
+                    condiciones.Add("i.ID_Propietario = @idPropietarioFiltro");
+                    command.Parameters.AddWithValue("@idPropietarioFiltro", idPropietario.Value);
+                }
+                if (latitud.HasValue && longitud.HasValue && radioKm.HasValue)
+                {
+                    // Fórmula de Haversine: distancia en km entre dos coordenadas sobre la Tierra
+                    condiciones.Add(@"(6371 * ACOS(
+        COS(RADIANS(@lat)) * COS(RADIANS(i.Latitud)) * COS(RADIANS(i.Longitud) - RADIANS(@lng))
+        + SIN(RADIANS(@lat)) * SIN(RADIANS(i.Latitud))
+    )) <= @radio");
+                    command.Parameters.AddWithValue("@lat", latitud.Value);
+                    command.Parameters.AddWithValue("@lng", longitud.Value);
+                    command.Parameters.AddWithValue("@radio", radioKm.Value);
+                }
+
                 if (disponibleDesde.HasValue && disponibleHasta.HasValue)
                 {
                     condiciones.Add(@"NOT EXISTS (
@@ -353,6 +397,7 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
             SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
                i.PrecioXDia, i.PorcentajeReserva, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
                 i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado, i.FotoPortada,
+                i.Cupo, i.Latitud, i.Longitud,
                 p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
                 t.Nombre AS NombreTipo
             FROM Inmueble i
@@ -377,7 +422,7 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                         Localidad = reader.GetString("Localidad"),
                         Direccion = reader.GetString("Direccion"),
                         PrecioXDia = Convert.ToDecimal(reader.GetDouble("PrecioXDia")),
-PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
+                        PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                         MetrosCuadrados = Convert.ToDecimal(reader.GetInt32("MetrosCuadrados")),
                         NroAmbientes = reader.GetInt32("NroAmbientes"),
                         NroBanios = reader.GetInt32("NroBanios"),
@@ -390,6 +435,9 @@ PorcentajeReserva = Convert.ToDecimal(reader["PorcentajeReserva"]),
                             Apellido = reader.GetString("ApellidoPropietario")
                         },
                         FotoPortada = reader.IsDBNull(reader.GetOrdinal("FotoPortada")) ? null : reader.GetString("FotoPortada"),
+                        Cupo = reader.GetInt32("Cupo"),
+                        Latitud = reader.IsDBNull(reader.GetOrdinal("Latitud")) ? null : reader.GetDecimal("Latitud"),
+                        Longitud = reader.IsDBNull(reader.GetOrdinal("Longitud")) ? null : reader.GetDecimal("Longitud"),
                     });
                 }
                 connection.Close();

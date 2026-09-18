@@ -92,6 +92,22 @@
     </div>
 
     <div class="form-group mb-3">
+        <label asp-for="Cupo" class="control-label"></label>
+        <input asp-for="Cupo" class="form-control" />
+        <span asp-validation-for="Cupo" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Latitud" class="control-label"></label>
+        <input asp-for="Latitud" class="form-control" placeholder="ej: -34.6037" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Longitud" class="control-label"></label>
+        <input asp-for="Longitud" class="form-control" placeholder="ej: -58.3816" />
+    </div>
+
+    <div class="form-group mb-3">
         <label asp-for="IdPropietario"></label>
 
         <select asp-for="IdPropietario" class="form-control">

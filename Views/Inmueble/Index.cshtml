@@ -32,27 +32,21 @@
 
         <div class="col-md-4">
             <label class="form-label">Buscar</label>
-            <input type="text"
-                   name="busqueda"
-                   class="form-control"
-                   placeholder="Provincia, localidad, dirección, tipo o propietario"
-                   value="@ViewBag.Busqueda" />
+            <input type="text" name="busqueda" class="form-control"
+                   placeholder="Provincia, localidad, dirección, tipo o propietario" value="@ViewBag.Busqueda" />
         </div>
 
         <div class="col-md-2">
             <label class="form-label">Precio</label>
             <select name="operadorPrecio" class="form-control">
                 <option value="">--</option>
-                <option value="mayor"
-                        selected="@(ViewBag.OperadorPrecio == "mayor")">
+                <option value="mayor" selected="@(ViewBag.OperadorPrecio == "mayor")">
                     Mayor a
                 </option>
-                <option value="menor"
-                        selected="@(ViewBag.OperadorPrecio == "menor")">
+                <option value="menor" selected="@(ViewBag.OperadorPrecio == "menor")">
                     Menor a
                 </option>
-                <option value="igual"
-                        selected="@(ViewBag.OperadorPrecio == "igual")">
+                <option value="igual" selected="@(ViewBag.OperadorPrecio == "igual")">
                     Igual a
                 </option>
             </select>
@@ -60,47 +54,68 @@
 
         <div class="col-md-2">
             <label class="form-label">Monto</label>
-            <input type="number"
-                   step="0.01"
-                   name="precio"
-                   class="form-control"
-                   value="@ViewBag.Precio" />
+            <input type="number" step="0.01" name="precio" class="form-control" value="@ViewBag.Precio" />
         </div>
 
         <div class="col-md-2">
             <label class="form-label">Ambientes (mín.)</label>
-            <input type="number"
-                   name="ambientesMinimo"
-                   class="form-control"
-                   value="@ViewBag.AmbientesMinimo" />
+            <input type="number" name="ambientesMinimo" class="form-control" value="@ViewBag.AmbientesMinimo" />
         </div>
 
         <div class="col-md-2">
             <label class="form-label">m² desde</label>
-            <input type="number"
-                   name="metrosMinimo"
-                   class="form-control"
-                   value="@ViewBag.MetrosMinimo" />
+            <input type="number" name="metrosMinimo" class="form-control" value="@ViewBag.MetrosMinimo" />
         </div>
 
         <div class="col-md-2">
             <label class="form-label">m² hasta</label>
-            <input type="number"
-                   name="metrosMaximo"
-                   class="form-control"
-                   value="@ViewBag.MetrosMaximo" />
+            <input type="number" name="metrosMaximo" class="form-control" value="@ViewBag.MetrosMaximo" />
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">Cupo mínimo</label>
+            <input type="number" name="cupoMinimo" class="form-control" value="@ViewBag.CupoMinimo" />
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">Latitud (centro)</label>
+            <input type="number" step="any" name="latitud" class="form-control" placeholder="ej: -34.6037"
+                   value="@ViewBag.Latitud" />
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">Longitud (centro)</label>
+            <input type="number" step="any" name="longitud" class="form-control" placeholder="ej: -58.3816"
+                   value="@ViewBag.Longitud" />
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">Radio (km)</label>
+            <input type="number" step="any" name="radioKm" class="form-control" value="@ViewBag.RadioKm" />
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">Propietario</label>
+            <select name="idPropietario" class="form-control">
+                <option value="">Todos</option>
+                @foreach (var prop in ViewBag.Propietarios)
+                {
+                    <option value="@prop.IdPropietario"
+                            selected="@(ViewBag.IdPropietario != null && (int)ViewBag.IdPropietario == prop.IdPropietario)">
+                        @prop.Nombre @prop.Apellido
+                    </option>
+                }
+            </select>
         </div>
 
         <div class="col-md-2">
             <label class="form-label">Estado</label>
             <select name="habilitadoFiltro" class="form-control">
                 <option value="">Todos</option>
-                <option value="habilitados"
-                        selected="@(ViewBag.HabilitadoFiltro == "habilitados")">
+                <option value="habilitados" selected="@(ViewBag.HabilitadoFiltro == "habilitados")">
                     Habilitados
                 </option>
-                <option value="deshabilitados"
-                        selected="@(ViewBag.HabilitadoFiltro == "deshabilitados")">
+                <option value="deshabilitados" selected="@(ViewBag.HabilitadoFiltro == "deshabilitados")">
                     Deshabilitados
                 </option>
             </select>
@@ -108,23 +123,18 @@
 
         <div class="col-md-2">
             <label class="form-label">Disponible desde</label>
-            <input type="date"
-                   name="fechaDesde"
-                   class="form-control"
+            <input type="date" name="fechaDesde" class="form-control"
                    value="@(ViewBag.FechaDesde != null ? ((DateTime)ViewBag.FechaDesde).ToString("yyyy-MM-dd") : "")" />
         </div>
 
         <div class="col-md-2">
             <label class="form-label">Disponible hasta</label>
-            <input type="date"
-                   name="fechaHasta"
-                   class="form-control"
+            <input type="date" name="fechaHasta" class="form-control"
                    value="@(ViewBag.FechaHasta != null ? ((DateTime)ViewBag.FechaHasta).ToString("yyyy-MM-dd") : "")" />
         </div>
 
         <div class="col-md-2">
-            <button type="submit"
-                    class="btn btn-primary w-100">
+            <button type="submit" class="btn btn-primary w-100">
                 Buscar
             </button>
         </div>
@@ -139,8 +149,7 @@
          ViewBag.FechaDesde != null ||
          ViewBag.FechaHasta != null)
     {
-        <a asp-action="Index"
-           class="btn btn-secondary btn-sm mt-2">
+        <a asp-action="Index" class="btn btn-secondary btn-sm mt-2">
             Limpiar filtros
         </a>
     }
@@ -168,8 +177,7 @@
                 <td>
                     @if (!string.IsNullOrEmpty(item.FotoPortada))
                     {
-                        <img src="@item.FotoPortada"
-                             style="width:80px;height:60px;object-fit:cover;" />
+                        <img src="@item.FotoPortada" style="width:80px;height:60px;object-fit:cover;" />
                     }
                     else
                     {
@@ -186,21 +194,18 @@
                 <td>@(item.Habilitado ? "Sí" : "No")</td>
 
                 <td>
-                    <a asp-action="Details"
-                       asp-route-id="@item.IdInmueble">
+                    <a asp-action="Details" asp-route-id="@item.IdInmueble">
                         Detalles
                     </a> |
 
-                    <a asp-action="Edit"
-                       asp-route-id="@item.IdInmueble">
+                    <a asp-action="Edit" asp-route-id="@item.IdInmueble">
                         Editar
                     </a>
                     
                     @if (User.IsInRole("Administrador"))
                     {
                         <span> | </span>
-                        <a asp-action="Delete"
-                           asp-route-id="@item.IdInmueble">
+                        <a asp-action="Delete" asp-route-id="@item.IdInmueble">
                             Eliminar
                         </a>
                     }
@@ -224,9 +229,7 @@
         <ul class="pagination">
 
             <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
-                <a class="page-link"
-                   asp-action="Index"
-                   asp-route-paginaNro="@(paginaActual - 1)">
+                <a class="page-link" asp-action="Index" asp-route-paginaNro="@(paginaActual - 1)">
                     Anterior
                 </a>
             </li>
@@ -234,18 +237,14 @@
             @for (int i = 1; i <= totalPaginas; i++)
             {
                 <li class="page-item @(i == paginaActual ? "active" : "")">
-                    <a class="page-link"
-                       asp-action="Index"
-                       asp-route-paginaNro="@i">
+                    <a class="page-link" asp-action="Index" asp-route-paginaNro="@i">
                         @i
                     </a>
                 </li>
             }
 
             <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
-                <a class="page-link"
-                   asp-action="Index"
-                   asp-route-paginaNro="@(paginaActual + 1)">
+                <a class="page-link" asp-action="Index" asp-route-paginaNro="@(paginaActual + 1)">
                     Siguiente
                 </a>
             </li>

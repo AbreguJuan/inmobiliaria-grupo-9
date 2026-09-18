@@ -72,7 +72,24 @@
     <dd class="col-sm-9">
         @Model.NroBanios
     </dd>
-
+    <dt class="col-sm-3">
+        Cupo
+    </dt>
+    <dd class="col-sm-9">
+        @Model.Cupo
+    </dd>
+    <dt class="col-sm-3">
+        Latitud
+    </dt>
+    <dd class="col-sm-9">
+        @(Model.Latitud?.ToString() ?? "No especificada")
+    </dd>
+    <dt class="col-sm-3">
+        Longitud
+    </dt>
+    <dd class="col-sm-9">
+        @(Model.Longitud?.ToString() ?? "No especificada")
+    </dd>
     <dt class="col-sm-3">
         Propietario
     </dt>
@@ -86,6 +103,7 @@
     <dt class="col-sm-3">
         Estado
     </dt>
+
     <dd class="col-sm-9">
         @(Model.Habilitado ? "Habilitado" : "No habilitado")
     </dd>

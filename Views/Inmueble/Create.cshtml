@@ -56,18 +56,13 @@
         <span asp-validation-for="PrecioXDia" class="text-danger"></span>
     </div>
     <div class="form-group mb-3">
-    <label asp-for="PorcentajeReserva" class="control-label"></label>
-    <div class="input-group">
-        <input asp-for="PorcentajeReserva"
-               class="form-control"
-               type="number"
-               min="0"
-               max="100"
-               step="0.01" />
-        <span class="input-group-text">%</span>
+        <label asp-for="PorcentajeReserva" class="control-label"></label>
+        <div class="input-group">
+            <input asp-for="PorcentajeReserva" class="form-control" type="number" min="0" max="100" step="0.01" />
+            <span class="input-group-text">%</span>
+        </div>
+        <span asp-validation-for="PorcentajeReserva" class="text-danger"></span>
     </div>
-    <span asp-validation-for="PorcentajeReserva" class="text-danger"></span>
-</div>
 
     <div class="form-group mb-3">
         <label asp-for="MetrosCuadrados" class="control-label"></label>
@@ -102,6 +97,22 @@
         </select>
 
         <span asp-validation-for="IdPropietario" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Cupo" class="control-label"></label>
+        <input asp-for="Cupo" class="form-control" />
+        <span asp-validation-for="Cupo" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Latitud" class="control-label"></label>
+        <input asp-for="Latitud" class="form-control" placeholder="ej: -34.6037" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Longitud" class="control-label"></label>
+        <input asp-for="Longitud" class="form-control" placeholder="ej: -58.3816" />
     </div>
 
     <div class="form-check mb-3">
