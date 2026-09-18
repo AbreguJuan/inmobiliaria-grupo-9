@@ -86,13 +86,13 @@ namespace inmobiliaria_grupo_9.Models
             return res;
         }
 
-public IList<Pago> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
-{
-    var lista = new List<Pago>();
+        public IList<Pago> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
+        {
+            var lista = new List<Pago>();
 
-    using var connection = new MySqlConnection(connectionString);
+            using var connection = new MySqlConnection(connectionString);
 
-    string sql = @"
+            string sql = @"
         SELECT
             p.IdPago,
             p.IdReserva,
@@ -111,67 +111,67 @@ public IList<Pago> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
         ORDER BY p.FechaPago DESC
         LIMIT @tamPagina OFFSET @offset;";
 
-    using var command = new MySqlCommand(sql, connection);
+            using var command = new MySqlCommand(sql, connection);
 
-    command.Parameters.AddWithValue("@tamPagina", tamPagina);
-    command.Parameters.AddWithValue(
-        "@offset",
-        (paginaNro - 1) * tamPagina
-    );
+            command.Parameters.AddWithValue("@tamPagina", tamPagina);
+            command.Parameters.AddWithValue(
+                "@offset",
+                (paginaNro - 1) * tamPagina
+            );
 
-    connection.Open();
+            connection.Open();
 
-    using var reader = command.ExecuteReader();
+            using var reader = command.ExecuteReader();
 
-    while (reader.Read())
-    {
-        lista.Add(new Pago
-        {
-            IdPago = reader.GetInt32("IdPago"),
-            IdReserva = reader.GetInt32("IdReserva"),
-            Concepto = reader.GetString("Concepto"),
-            FechaPago = reader.GetDateTime("FechaPago"),
-            Importe = reader.GetDecimal("Importe"),
-            Anulado = reader.GetBoolean("Anulado"),
-
-            CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor"))
-                ? null
-                : reader.GetInt32("CreadoPor"),
-
-            AnuladoPor = reader.IsDBNull(reader.GetOrdinal("AnuladoPor"))
-                ? null
-                : reader.GetInt32("AnuladoPor"),
-
-            Reserva = new Reserva
+            while (reader.Read())
             {
-                IdReserva = reader.GetInt32("IdReserva"),
-
-                Inquilino = new Inquilino
+                lista.Add(new Pago
                 {
-                    IdInquilino = reader.GetInt32("ID_Inquilino"),
-                    Nombre = reader.GetString("InquilinoNombre"),
-                    Apellido = reader.GetString("InquilinoApellido")
-                }
+                    IdPago = reader.GetInt32("IdPago"),
+                    IdReserva = reader.GetInt32("IdReserva"),
+                    Concepto = reader.GetString("Concepto"),
+                    FechaPago = reader.GetDateTime("FechaPago"),
+                    Importe = reader.GetDecimal("Importe"),
+                    Anulado = reader.GetBoolean("Anulado"),
+
+                    CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor"))
+                        ? null
+                        : reader.GetInt32("CreadoPor"),
+
+                    AnuladoPor = reader.IsDBNull(reader.GetOrdinal("AnuladoPor"))
+                        ? null
+                        : reader.GetInt32("AnuladoPor"),
+
+                    Reserva = new Reserva
+                    {
+                        IdReserva = reader.GetInt32("IdReserva"),
+
+                        Inquilino = new Inquilino
+                        {
+                            IdInquilino = reader.GetInt32("ID_Inquilino"),
+                            Nombre = reader.GetString("InquilinoNombre"),
+                            Apellido = reader.GetString("InquilinoApellido")
+                        }
+                    }
+                });
             }
-        });
-    }
 
-    return lista;
-}
-public int ObtenerCantidad()
-{
-    using var connection =
-        new MySqlConnection(connectionString);
+            return lista;
+        }
+        public int ObtenerCantidad()
+        {
+            using var connection =
+                new MySqlConnection(connectionString);
 
-    string sql = "SELECT COUNT(IdPago) FROM pago;";
+            string sql = "SELECT COUNT(IdPago) FROM pago;";
 
-    using var command =
-        new MySqlCommand(sql, connection);
+            using var command =
+                new MySqlCommand(sql, connection);
 
-    connection.Open();
+            connection.Open();
 
-    return Convert.ToInt32(command.ExecuteScalar());
-}
+            return Convert.ToInt32(command.ExecuteScalar());
+        }
 
         public Pago? ObtenerPorId(int idPago)
         {
@@ -260,6 +260,99 @@ public int ObtenerCantidad()
                     Anulado = reader.GetBoolean("Anulado"),
                     CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor")) ? null : reader.GetInt32("CreadoPor"),
                     AnuladoPor = reader.IsDBNull(reader.GetOrdinal("AnuladoPor")) ? null : reader.GetInt32("AnuladoPor")
+                });
+            }
+
+            return lista;
+        }
+
+        public IList<Pago> Buscar(string? concepto = null, decimal? importeMin = null, decimal? importeMax = null,
+            DateTime? fechaDesde = null, DateTime? fechaHasta = null, bool? anulado = null, string? inquilino = null)
+        {
+            var lista = new List<Pago>();
+
+            using var connection = new MySqlConnection(connectionString);
+            var command = new MySqlCommand { Connection = connection };
+            var condiciones = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(concepto))
+            {
+                condiciones.Add("p.Concepto LIKE @concepto");
+                command.Parameters.AddWithValue("@concepto", $"%{concepto}%");
+            }
+
+            if (importeMin.HasValue)
+            {
+                condiciones.Add("p.Importe >= @importeMin");
+                command.Parameters.AddWithValue("@importeMin", importeMin.Value);
+            }
+
+            if (importeMax.HasValue)
+            {
+                condiciones.Add("p.Importe <= @importeMax");
+                command.Parameters.AddWithValue("@importeMax", importeMax.Value);
+            }
+
+            if (fechaDesde.HasValue)
+            {
+                condiciones.Add("p.FechaPago >= @fechaDesde");
+                command.Parameters.AddWithValue("@fechaDesde", fechaDesde.Value);
+            }
+
+            if (fechaHasta.HasValue)
+            {
+                condiciones.Add("p.FechaPago <= @fechaHasta");
+                command.Parameters.AddWithValue("@fechaHasta", fechaHasta.Value);
+            }
+
+            if (anulado.HasValue)
+            {
+                condiciones.Add("p.Anulado = @anulado");
+                command.Parameters.AddWithValue("@anulado", anulado.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(inquilino))
+            {
+                condiciones.Add("(i.Nombre LIKE @inquilino OR i.Apellido LIKE @inquilino)");
+                command.Parameters.AddWithValue("@inquilino", $"%{inquilino}%");
+            }
+
+            string where = condiciones.Count > 0 ? "WHERE " + string.Join(" AND ", condiciones) : "";
+
+            command.CommandText = $@"
+            SELECT p.IdPago, p.IdReserva, p.Concepto, p.FechaPago, p.Importe, p.Anulado, p.CreadoPor, p.AnuladoPor,
+                i.ID_Inquilino, i.Nombre AS InquilinoNombre, i.Apellido AS InquilinoApellido
+            FROM pago p
+            INNER JOIN reserva r ON p.IdReserva = r.ID_Reserva
+            INNER JOIN inquilino i ON r.ID_Inquilino = i.ID_Inquilino
+            {where}
+            ORDER BY p.FechaPago DESC";
+
+            connection.Open();
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                lista.Add(new Pago
+                {
+                    IdPago = reader.GetInt32("IdPago"),
+                    IdReserva = reader.GetInt32("IdReserva"),
+                    Concepto = reader.GetString("Concepto"),
+                    FechaPago = reader.GetDateTime("FechaPago"),
+                    Importe = reader.GetDecimal("Importe"),
+                    Anulado = reader.GetBoolean("Anulado"),
+                    CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor")) ? null : reader.GetInt32("CreadoPor"),
+                    AnuladoPor = reader.IsDBNull(reader.GetOrdinal("AnuladoPor")) ? null : reader.GetInt32("AnuladoPor"),
+                    Reserva = new Reserva
+                    {
+                        IdReserva = reader.GetInt32("IdReserva"),
+                        Inquilino = new Inquilino
+                        {
+                            IdInquilino = reader.GetInt32("ID_Inquilino"),
+                            Nombre = reader.GetString("InquilinoNombre"),
+                            Apellido = reader.GetString("InquilinoApellido")
+                        }
+                    }
                 });
             }
 

@@ -18,5 +18,8 @@ namespace inmobiliaria_grupo_9.Models
         Pago? ObtenerPorId(int idPago);
 
         IList<Pago> ObtenerPorReserva(int idReserva);
+
+        IList<Pago> Buscar(string? concepto = null, decimal? importeMin = null, decimal? importeMax = null,
+            DateTime? fechaDesde = null, DateTime? fechaHasta = null, bool? anulado = null, string? inquilino = null);
     }
 }

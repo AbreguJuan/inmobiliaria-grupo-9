@@ -21,22 +21,48 @@ namespace inmobiliaria_grupo_9.Controllers
             this.repositorioInmueble = repositorioInmueble;
         }
 
-        public IActionResult Index(int pagina = 1)
+        public IActionResult Index(int pagina = 1, string concepto = null, decimal? importeMin = null, decimal? importeMax = null,
+            DateTime? fechaDesde = null, DateTime? fechaHasta = null, string anuladoFiltro = null, string inquilino = null)
         {
             try
             {
-                const int tamPagina = 5;
+                bool? anulado = anuladoFiltro switch
+                {
+                    "anulados" => true,
+                    "vigentes" => false,
+                    _ => null
+                };
 
-                int totalRegistros = repositorioPago.ObtenerCantidad();
+                bool hayFiltros = !string.IsNullOrWhiteSpace(concepto) || importeMin.HasValue || importeMax.HasValue
+                    || fechaDesde.HasValue || fechaHasta.HasValue || anulado.HasValue || !string.IsNullOrWhiteSpace(inquilino);
 
-                int totalPaginas = (int)Math.Ceiling(
-                    (double)totalRegistros / tamPagina
-                );
+                IList<Pago> lista;
 
-                var lista = repositorioPago.ObtenerLista(pagina, tamPagina);
+                if (hayFiltros)
+                {
+                    lista = repositorioPago.Buscar(concepto, importeMin, importeMax, fechaDesde, fechaHasta, anulado, inquilino);
+                    ViewBag.PaginaActual = 1;
+                    ViewBag.TotalPaginas = 1;
+                }
+                else
+                {
+                    const int tamPagina = 5;
+                    int totalRegistros = repositorioPago.ObtenerCantidad();
+                    int totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
 
-                ViewBag.PaginaActual = pagina;
-                ViewBag.TotalPaginas = totalPaginas;
+                    lista = repositorioPago.ObtenerLista(pagina, tamPagina);
+
+                    ViewBag.PaginaActual = pagina;
+                    ViewBag.TotalPaginas = totalPaginas;
+                }
+
+                ViewBag.Concepto = concepto;
+                ViewBag.ImporteMin = importeMin;
+                ViewBag.ImporteMax = importeMax;
+                ViewBag.FechaDesde = fechaDesde;
+                ViewBag.FechaHasta = fechaHasta;
+                ViewBag.AnuladoFiltro = anuladoFiltro;
+                ViewBag.Inquilino = inquilino;
 
                 return View(lista);
             }
