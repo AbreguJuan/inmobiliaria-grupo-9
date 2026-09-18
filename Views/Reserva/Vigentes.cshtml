@@ -1,0 +1,19 @@
+@model IEnumerable<inmobiliaria_grupo_9.Models.Reserva>
+@{ ViewData["Title"] = "Reservas vigentes"; }
+
+<h1>Reservas vigentes</h1>
+
+<table class="table table-striped">
+    <thead><tr><th>Inquilino</th><th>Inmueble</th><th>Desde</th><th>Hasta</th></tr></thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Inquilino?.Nombre @item.Inquilino?.Apellido</td>
+                <td>@item.Inmueble?.TipoDeInmueble?.Nombre - @item.Inmueble?.Direccion</td>
+                <td>@item.Desde.ToShortDateString()</td>
+                <td>@item.Hasta.ToShortDateString()</td>
+            </tr>
+        }
+    </tbody>
+</table>

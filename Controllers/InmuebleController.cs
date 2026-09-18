@@ -291,5 +291,12 @@ namespace inmobiliaria_grupo_9.Controllers
             _repositorioImagen.Baja(idImagen);
             return RedirectToAction(nameof(Details), new { id = idInmueble });
         }
+
+        public IActionResult SinReservas(int dias = 30)
+        {
+            var lista = _repositorioInmueble.ObtenerSinReservas(dias);
+            ViewBag.Dias = dias;
+            return View(lista);
+        }
     }
 }

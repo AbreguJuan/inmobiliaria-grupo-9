@@ -444,5 +444,63 @@ namespace inmobiliaria_grupo_9.Models
             }
             return res;
         }
+
+        public IList<Inmueble> ObtenerSinReservas(int dias)
+        {
+            var res = new List<Inmueble>();
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @$"
+            SELECT i.ID_Inmueble AS IdInmueble, i.ID_TipoInmueble AS IdTipoInmueble, i.Provincia, i.Localidad, i.Direccion,
+                i.PrecioXDia, i.Metros_Cuadrados AS MetrosCuadrados, i.Nro_Ambientes AS NroAmbientes,
+                i.Nro_Banios AS NroBanios, i.ID_Propietario AS IdPropietario, i.Habilitado, i.FotoPortada,
+                i.Cupo, i.Latitud, i.Longitud,
+                p.Nombre AS NombrePropietario, p.Apellido AS ApellidoPropietario,
+                t.Nombre AS NombreTipo
+            FROM Inmueble i
+            INNER JOIN Propietario p ON i.ID_Propietario = p.ID_Propietario
+            INNER JOIN tipo_inmueble t ON i.ID_TipoInmueble = t.ID_TipoInmueble
+            WHERE NOT EXISTS (
+                SELECT 1 FROM reserva r
+                WHERE r.ID_Inmueble = i.ID_Inmueble
+                  AND r.Hasta >= DATE_SUB(CURDATE(), INTERVAL {dias} DAY)
+            )";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        res.Add(new Inmueble
+                        {
+                            IdInmueble = reader.GetInt32("IdInmueble"),
+                            IdTipoInmueble = reader.GetInt32("IdTipoInmueble"),
+                            TipoDeInmueble = new TipoDeInmueble { Nombre = reader.GetString("NombreTipo") },
+                            Provincia = reader.GetString("Provincia"),
+                            Localidad = reader.GetString("Localidad"),
+                            Direccion = reader.GetString("Direccion"),
+                            PrecioXDia = Convert.ToDecimal(reader.GetDouble("PrecioXDia")),
+                            MetrosCuadrados = Convert.ToDecimal(reader.GetInt32("MetrosCuadrados")),
+                            NroAmbientes = reader.GetInt32("NroAmbientes"),
+                            NroBanios = reader.GetInt32("NroBanios"),
+                            IdPropietario = reader.GetInt32("IdPropietario"),
+                            Habilitado = reader.GetBoolean("Habilitado"),
+                            FotoPortada = reader.IsDBNull(reader.GetOrdinal("FotoPortada")) ? null : reader.GetString("FotoPortada"),
+                            Cupo = reader.GetInt32("Cupo"),
+                            Latitud = reader.IsDBNull(reader.GetOrdinal("Latitud")) ? null : reader.GetDecimal("Latitud"),
+                            Longitud = reader.IsDBNull(reader.GetOrdinal("Longitud")) ? null : reader.GetDecimal("Longitud"),
+                            Propietario = new Propietario
+                            {
+                                IdPropietario = reader.GetInt32("IdPropietario"),
+                                Nombre = reader.GetString("NombrePropietario"),
+                                Apellido = reader.GetString("ApellidoPropietario")
+                            }
+                        });
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
+        }
     }
 }

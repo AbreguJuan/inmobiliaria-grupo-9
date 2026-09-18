@@ -10,5 +10,7 @@ namespace inmobiliaria_grupo_9.Models
             DateTime? disponibleDesde = null, DateTime? disponibleHasta = null,
             int? cupoMinimo = null, decimal? latitud = null, decimal? longitud = null, decimal? radioKm = null,
             int? idPropietario = null);
+
+        IList<Inmueble> ObtenerSinReservas(int dias);
     }
 }

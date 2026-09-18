@@ -13,6 +13,13 @@
     <a asp-action="Create" class="btn btn-primary">Nueva Reserva</a>
 </p>
 
+<p>
+    <a asp-action="MasReservados" class="btn btn-outline-secondary btn-sm">Más reservados</a>
+    <a asp-action="Vigentes" class="btn btn-outline-secondary btn-sm">Vigentes</a>
+    <a asp-action="PorVencer" class="btn btn-outline-secondary btn-sm">Por vencer</a>
+    <a asp-controller="Inmueble" asp-action="SinReservas" class="btn btn-outline-secondary btn-sm">Inmuebles sin reservas</a>
+</p>
+
 <table class="table table-striped">
     <thead>
         <tr>

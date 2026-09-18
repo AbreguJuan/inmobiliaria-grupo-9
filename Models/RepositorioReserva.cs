@@ -307,17 +307,17 @@ namespace inmobiliaria_grupo_9.Models
             return r;
         }
 
-       public bool ExisteSuperposicion(
-    int idInmueble,
-    DateTime desde,
-    DateTime hasta,
-    int idReservaExcluida = 0)
-{
-    bool existe = false;
+        public bool ExisteSuperposicion(
+     int idInmueble,
+     DateTime desde,
+     DateTime hasta,
+     int idReservaExcluida = 0)
+        {
+            bool existe = false;
 
-    using (var connection = new MySqlConnection(connectionString))
-    {
-        string sql = @"
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"
             SELECT COUNT(*)
             FROM reserva
             WHERE ID_Inmueble = @idInmueble
@@ -332,23 +332,23 @@ namespace inmobiliaria_grupo_9.Models
                 END
             ) > @desde;";
 
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            command.Parameters.AddWithValue("@idInmueble", idInmueble);
-            command.Parameters.AddWithValue("@idExcluir", idReservaExcluida);
-            command.Parameters.AddWithValue("@desde", desde);
-            command.Parameters.AddWithValue("@hasta", hasta);
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@idInmueble", idInmueble);
+                    command.Parameters.AddWithValue("@idExcluir", idReservaExcluida);
+                    command.Parameters.AddWithValue("@desde", desde);
+                    command.Parameters.AddWithValue("@hasta", hasta);
 
-            connection.Open();
+                    connection.Open();
 
-            int cantidad = Convert.ToInt32(command.ExecuteScalar());
+                    int cantidad = Convert.ToInt32(command.ExecuteScalar());
 
-            existe = cantidad > 0;
+                    existe = cantidad > 0;
+                }
+            }
+
+            return existe;
         }
-    }
-
-    return existe;
-}
 
         public int FinalizarReserva(int idReserva, DateTime fechaFinalizacion, int idUsuario)
         {
@@ -377,7 +377,7 @@ namespace inmobiliaria_grupo_9.Models
             return res;
         }
 
-      
+
         public IList<Reserva> ObtenerPorInmueble(int idInmueble)
         {
             var res = new List<Reserva>();
@@ -405,6 +405,129 @@ namespace inmobiliaria_grupo_9.Models
                 }
             }
             return res;
+        }
+
+        public IList<InmuebleConteo> ObtenerMasReservados(int dias = 365, int top = 10)
+        {
+            var res = new List<InmuebleConteo>();
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT r.ID_Inmueble AS IdInmueble, inm.Direccion, t.Nombre AS TipoNombre, COUNT(*) AS CantidadReservas
+            FROM reserva r
+            INNER JOIN inmueble inm ON r.ID_Inmueble = inm.ID_Inmueble
+            INNER JOIN tipo_inmueble t ON inm.ID_TipoInmueble = t.ID_TipoInmueble
+            WHERE r.Desde >= DATE_SUB(CURDATE(), INTERVAL @dias DAY)
+            GROUP BY r.ID_Inmueble, inm.Direccion, t.Nombre
+            ORDER BY CantidadReservas DESC
+            LIMIT @top";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@dias", dias);
+                    command.Parameters.AddWithValue("@top", top);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        res.Add(new InmuebleConteo
+                        {
+                            IdInmueble = reader.GetInt32("IdInmueble"),
+                            Direccion = reader.GetString("Direccion"),
+                            TipoNombre = reader.GetString("TipoNombre"),
+                            CantidadReservas = reader.GetInt32("CantidadReservas"),
+                        });
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
+        }
+
+        public IList<Reserva> ObtenerVigentes()
+        {
+            var res = new List<Reserva>();
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT r.ID_Reserva AS IdReserva, r.ID_Inquilino AS IdInquilino, r.ID_Inmueble AS IdInmueble,
+                r.Desde, r.Hasta, r.MontoDiario, r.Finalizada, r.FechaFinalizacion,
+                i.Nombre AS NombreInquilino, i.Apellido AS ApellidoInquilino,
+                inm.ID_TipoInmueble AS IdTipoInmuebleInmueble, t.Nombre AS TipoInmueble, inm.Direccion AS DireccionInmueble
+            FROM reserva r
+            INNER JOIN inquilino i ON r.ID_Inquilino = i.ID_Inquilino
+            INNER JOIN inmueble inm ON r.ID_Inmueble = inm.ID_Inmueble
+            INNER JOIN tipo_inmueble t ON inm.ID_TipoInmueble = t.ID_TipoInmueble
+            WHERE r.Finalizada = 0
+              AND CURDATE() BETWEEN r.Desde AND r.Hasta";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        res.Add(MapearReserva(reader));
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
+        }
+
+        public IList<Reserva> ObtenerPorVencer(int dias)
+        {
+            var res = new List<Reserva>();
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT r.ID_Reserva AS IdReserva, r.ID_Inquilino AS IdInquilino, r.ID_Inmueble AS IdInmueble,
+                r.Desde, r.Hasta, r.MontoDiario, r.Finalizada, r.FechaFinalizacion,
+                i.Nombre AS NombreInquilino, i.Apellido AS ApellidoInquilino,
+                inm.ID_TipoInmueble AS IdTipoInmuebleInmueble, t.Nombre AS TipoInmueble, inm.Direccion AS DireccionInmueble
+            FROM reserva r
+            INNER JOIN inquilino i ON r.ID_Inquilino = i.ID_Inquilino
+            INNER JOIN inmueble inm ON r.ID_Inmueble = inm.ID_Inmueble
+            INNER JOIN tipo_inmueble t ON inm.ID_TipoInmueble = t.ID_TipoInmueble
+            WHERE r.Finalizada = 0
+              AND r.Hasta BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL @dias DAY)";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@dias", dias);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        res.Add(MapearReserva(reader));
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
+        }
+
+        // Método auxiliar para no repetir el mapeo en los 2 de arriba
+        private Reserva MapearReserva(MySqlDataReader reader)
+        {
+            return new Reserva
+            {
+                IdReserva = reader.GetInt32("IdReserva"),
+                IdInquilino = reader.GetInt32("IdInquilino"),
+                IdInmueble = reader.GetInt32("IdInmueble"),
+                Desde = reader.GetDateTime("Desde"),
+                Hasta = reader.GetDateTime("Hasta"),
+                MontoDiario = reader.GetDecimal("MontoDiario"),
+                Finalizada = reader.GetBoolean("Finalizada"),
+                FechaFinalizacion = reader.IsDBNull(reader.GetOrdinal("FechaFinalizacion")) ? null : reader.GetDateTime("FechaFinalizacion"),
+                Inquilino = new Inquilino
+                {
+                    IdInquilino = reader.GetInt32("IdInquilino"),
+                    Nombre = reader.GetString("NombreInquilino"),
+                    Apellido = reader.GetString("ApellidoInquilino")
+                },
+                Inmueble = new Inmueble
+                {
+                    IdInmueble = reader.GetInt32("IdInmueble"),
+                    IdTipoInmueble = reader.GetInt32("IdTipoInmuebleInmueble"),
+                    TipoDeInmueble = new TipoDeInmueble { Nombre = reader.GetString("TipoInmueble") },
+                    Direccion = reader.GetString("DireccionInmueble")
+                }
+            };
         }
     }
 }

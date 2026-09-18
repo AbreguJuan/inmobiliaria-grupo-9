@@ -1,0 +1,23 @@
+@model IEnumerable<inmobiliaria_grupo_9.Models.InmuebleConteo>
+@{ ViewData["Title"] = "Inmuebles más reservados"; }
+
+<h1>Inmuebles más reservados (últimos @ViewBag.Dias días)</h1>
+
+<form method="get" class="mb-3 d-flex gap-2">
+    <input type="number" name="dias" class="form-control" style="width:150px" value="@ViewBag.Dias" />
+    <button type="submit" class="btn btn-primary">Actualizar</button>
+</form>
+
+<table class="table table-striped">
+    <thead><tr><th>Tipo</th><th>Dirección</th><th>Cantidad de reservas</th></tr></thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.TipoNombre</td>
+                <td>@item.Direccion</td>
+                <td>@item.CantidadReservas</td>
+            </tr>
+        }
+    </tbody>
+</table>

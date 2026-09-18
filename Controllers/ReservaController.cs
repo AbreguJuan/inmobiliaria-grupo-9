@@ -228,7 +228,7 @@ namespace inmobiliaria_grupo_9.Controllers
 
             return View("ConfirmarFinalizacion", reserva);
         }
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult PagarMulta(int id, DateTime fechaFinalizacion, decimal multa)
@@ -353,6 +353,26 @@ namespace inmobiliaria_grupo_9.Controllers
                 ModelState.AddModelError("", "Ocurrió un error al renovar la reserva.");
                 return View("Renovar", reserva);
             }
+        }
+
+        public IActionResult MasReservados(int dias = 365, int top = 10)
+        {
+            var lista = _repositorioReserva.ObtenerMasReservados(dias, top);
+            ViewBag.Dias = dias;
+            return View(lista);
+        }
+
+        public IActionResult Vigentes()
+        {
+            var lista = _repositorioReserva.ObtenerVigentes();
+            return View(lista);
+        }
+
+        public IActionResult PorVencer(int dias = 7)
+        {
+            var lista = _repositorioReserva.ObtenerPorVencer(dias);
+            ViewBag.Dias = dias;
+            return View(lista);
         }
     }
 }
