@@ -20,6 +20,39 @@
     <a asp-controller="Inmueble" asp-action="SinReservas" class="btn btn-outline-secondary btn-sm">Inmuebles sin reservas</a>
 </p>
 
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label">Inquilino</label>
+            <input type="text" name="inquilino" class="form-control" value="@ViewBag.Inquilino" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Inmueble (dirección o tipo)</label>
+            <input type="text" name="inmueble" class="form-control" value="@ViewBag.Inmueble" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Desde</label>
+            <input type="date" name="fechaDesde" class="form-control"
+                   value="@(ViewBag.FechaDesde != null ? ((DateTime)ViewBag.FechaDesde).ToString("yyyy-MM-dd") : "")" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Hasta</label>
+            <input type="date" name="fechaHasta" class="form-control"
+                   value="@(ViewBag.FechaHasta != null ? ((DateTime)ViewBag.FechaHasta).ToString("yyyy-MM-dd") : "")" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Estado</label>
+            <select name="finalizadaFiltro" class="form-control">
+                <option value="">Todos</option>
+                <option value="vigentes" selected="@(ViewBag.FinalizadaFiltro == "vigentes")">Vigentes</option>
+                <option value="finalizadas" selected="@(ViewBag.FinalizadaFiltro == "finalizadas")">Finalizadas</option>
+            </select>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Buscar</button>
+    <a asp-action="Index" class="btn btn-secondary mt-2">Limpiar</a>
+</form>
+
 <table class="table table-striped">
     <thead>
         <tr>

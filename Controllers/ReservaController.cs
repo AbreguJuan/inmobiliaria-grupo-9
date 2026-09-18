@@ -36,17 +36,29 @@ namespace inmobiliaria_grupo_9.Controllers
             ViewBag.Inmuebles = new SelectList(inmuebles.Select(i => new { i.IdInmueble, Texto = i.ToString() }), "IdInmueble", "Texto", idInmueble);
         }
 
-        public IActionResult Index(int pagina = 1)
+        public IActionResult Index(string inquilino, string inmueble, DateTime? fechaDesde, DateTime? fechaHasta, string finalizadaFiltro)
         {
             try
             {
-                const int tamPagina = 5;
-                int totalRegistros = _repositorioReserva.ObtenerCantidad();
-                int totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
-                var reservas = _repositorioReserva.ObtenerLista(pagina, tamPagina);
+                bool? finalizada = finalizadaFiltro switch
+                {
+                    "finalizadas" => true,
+                    "vigentes" => false,
+                    _ => null
+                };
 
-                ViewBag.PaginaActual = pagina;
-                ViewBag.TotalPaginas = totalPaginas;
+                bool hayFiltros = !string.IsNullOrWhiteSpace(inquilino) || !string.IsNullOrWhiteSpace(inmueble)
+                    || fechaDesde.HasValue || fechaHasta.HasValue || finalizada.HasValue;
+
+                var reservas = hayFiltros
+                    ? _repositorioReserva.Buscar(inquilino, inmueble, fechaDesde, fechaHasta, finalizada)
+                    : _repositorioReserva.ObtenerLista();
+
+                ViewBag.Inquilino = inquilino;
+                ViewBag.Inmueble = inmueble;
+                ViewBag.FechaDesde = fechaDesde;
+                ViewBag.FechaHasta = fechaHasta;
+                ViewBag.FinalizadaFiltro = finalizadaFiltro;
 
                 return View(reservas);
             }

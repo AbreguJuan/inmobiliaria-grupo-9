@@ -19,5 +19,8 @@ namespace inmobiliaria_grupo_9.Models
         IList<InmuebleConteo> ObtenerMasReservados(int dias = 365, int top = 10);
         IList<Reserva> ObtenerVigentes();
         IList<Reserva> ObtenerPorVencer(int dias);
+
+        IList<Reserva> Buscar(string? inquilino = null, string? inmueble = null,
+            DateTime? fechaDesde = null, DateTime? fechaHasta = null, bool? finalizada = null);
     }
 }

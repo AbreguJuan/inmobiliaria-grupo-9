@@ -529,5 +529,69 @@ namespace inmobiliaria_grupo_9.Models
                 }
             };
         }
+
+        public IList<Reserva> Buscar(string? inquilino = null, string? inmueble = null,
+    DateTime? fechaDesde = null, DateTime? fechaHasta = null, bool? finalizada = null)
+        {
+            var res = new List<Reserva>();
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                var command = new MySqlCommand { Connection = connection };
+                var condiciones = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(inquilino))
+                {
+                    condiciones.Add("(i.Nombre LIKE @inquilino OR i.Apellido LIKE @inquilino)");
+                    command.Parameters.AddWithValue("@inquilino", $"%{inquilino}%");
+                }
+
+                if (!string.IsNullOrWhiteSpace(inmueble))
+                {
+                    condiciones.Add("(inm.Direccion LIKE @inmueble OR t.Nombre LIKE @inmueble)");
+                    command.Parameters.AddWithValue("@inmueble", $"%{inmueble}%");
+                }
+
+                if (fechaDesde.HasValue)
+                {
+                    condiciones.Add("r.Desde >= @fechaDesde");
+                    command.Parameters.AddWithValue("@fechaDesde", fechaDesde.Value);
+                }
+
+                if (fechaHasta.HasValue)
+                {
+                    condiciones.Add("r.Hasta <= @fechaHasta");
+                    command.Parameters.AddWithValue("@fechaHasta", fechaHasta.Value);
+                }
+
+                if (finalizada.HasValue)
+                {
+                    condiciones.Add("r.Finalizada = @finalizada");
+                    command.Parameters.AddWithValue("@finalizada", finalizada.Value);
+                }
+
+                string where = condiciones.Count > 0 ? "WHERE " + string.Join(" AND ", condiciones) : "";
+
+                command.CommandText = $@"
+            SELECT r.ID_Reserva AS IdReserva, r.ID_Inquilino AS IdInquilino, r.ID_Inmueble AS IdInmueble,
+                r.Desde, r.Hasta, r.MontoDiario, r.Finalizada, r.FechaFinalizacion,
+                i.Nombre AS NombreInquilino, i.Apellido AS ApellidoInquilino,
+                inm.ID_TipoInmueble AS IdTipoInmuebleInmueble, t.Nombre AS TipoInmueble, inm.Direccion AS DireccionInmueble
+            FROM reserva r
+            INNER JOIN inquilino i ON r.ID_Inquilino = i.ID_Inquilino
+            INNER JOIN inmueble inm ON r.ID_Inmueble = inm.ID_Inmueble
+            INNER JOIN tipo_inmueble t ON inm.ID_TipoInmueble = t.ID_TipoInmueble
+            {where}
+            ORDER BY r.ID_Reserva DESC";
+
+                connection.Open();
+                var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    res.Add(MapearReserva(reader));
+                }
+                connection.Close();
+            }
+            return res;
+        }
     }
 }
