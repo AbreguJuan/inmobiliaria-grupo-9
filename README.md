@@ -28,7 +28,7 @@ A continuación se presenta el esquema del modelo de datos correspondiente a la 
 
 ### Diagrama Entidad-Relación (DER)
 
-![Diagrama del Proyecto](./docs/inmobiliaria.png)
+![Diagrama del Proyecto](./docs/Inmobiliaria.png)
 
 <details>
 <summary>Ver diagrama en código Mermaid</summary>
