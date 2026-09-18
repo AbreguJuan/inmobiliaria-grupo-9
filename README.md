@@ -14,10 +14,11 @@
 
 ## 🛠️ Tecnologías
 
-* **Backend:** ASP.NET Core MVC (C#)
+* **Backend:** ASP.NET Core MVC 8 (C#)
+* **Seguridad:** Autenticación por Cookies, Criptografía (Pbkdf2 con Salt), y Autorización Basada en Roles (RBAC)
 * **Base de datos:** MySQL
 * **Conector:** MySqlConnector
-* **Frontend:** Razor Views (cshtml), Bootstrap
+* **Frontend:** Razor Views (.cshtml), HTML5, CSS3, Bootstrap
 
 ---
 
@@ -27,84 +28,107 @@ A continuación se presenta el esquema del modelo de datos correspondiente a la 
 
 ### Diagrama Entidad-Relación (DER)
 
-![Diagrama del Proyecto](./docs/der.png)
+![Diagrama del Proyecto](./docs/inmobiliaria.png)
 
 <details>
 <summary>Ver diagrama en código Mermaid</summary>
 
 ```mermaid
 erDiagram
-    PROPIETARIO ||--o{ INMUEBLE : posee
-    INMUEBLE ||--o{ RESERVA : "es reservado en"
-    INQUILINO ||--o{ RESERVA : realiza
-    RESERVA ||--|| PAGO : genera
-    INMUEBLE ||--o{ IMAGEN : tiene
-
-    PROPIETARIO {
-        int IdPropietario PK
-        string Nombre
-        string Apellido
-        string DNI
-        string Telefono
-        string Email
-        string Clave
+    tipo_inmueble {
+        int ID_TipoInmueble PK
+        varchar Nombre
+        tinyint Habilitado
     }
-
-    INQUILINO {
-        int IdInquilino PK
-        string Nombre
-        string Apellido
-        string DNI
-        string Telefono
-        string Email
-    }
-
-    USUARIO {
-        int IdUsuario PK
-        string Nombre
-        string Apellido
-        string Email
-        string Clave
-        string Avatar
-        int Rol
-    }
-
-    INMUEBLE {
-        int IdInmueble PK
-        string Tipo
-        string Provincia
-        string Localidad
-        string Direccion
-        float PrecioXDia
-        float Metros_Cuadrados
+    
+    inmueble {
+        int ID_Inmueble PK
+        int ID_TipoInmueble FK
+        int ID_Propietario FK
+        varchar Provincia
+        varchar Localidad
+        varchar Direccion
+        double PrecioXDia
+        decimal PorcentajeReserva
+        int Metros_Cuadrados
         int Nro_Ambientes
         int Nro_Banios
-        int IdPropietario FK
-        bool Habilitado
+        tinyint Habilitado
+        varchar FotoPortada
     }
-
-    IMAGEN {
-        int IdImagen PK
-        int IdInmueble FK
-        string Url
+    
+    imageninmueble {
+        int ID_Imagen PK
+        int ID_Inmueble FK
+        varchar Url
     }
-
-    RESERVA {
-        int IdReserva PK
-        int IdInquilino FK
-        int IdInmueble FK
+    
+    propietario {
+        int ID_Propietario PK
+        varchar Nombre
+        varchar Apellido
+        varchar DNI
+        varchar Telefono
+        varchar Email
+        varchar Clave
+    }
+    
+    inquilino {
+        int ID_Inquilino PK
+        varchar Nombre
+        varchar Apellido
+        varchar DNI
+        varchar Telefono
+        varchar Email
+    }
+    
+    usuario {
+        int ID_Usuario PK
+        varchar Nombre
+        varchar Apellido
+        varchar Email
+        varchar Clave
+        varchar Avatar
+        int Rol
+    }
+    
+    reserva {
+        int ID_Reserva PK
+        int ID_Inquilino FK
+        int ID_Inmueble FK
+        int CreadoPor FK
+        int TerminadoPor FK
         date Desde
         date Hasta
-        int IdPago FK
+        datetime FechaFinalizacion
+        tinyint Finalizada
+        decimal MontoDiario
     }
-
-    PAGO {
+    
+    pago {
         int IdPago PK
         int IdReserva FK
-        float Senia_Inicial
-        float Pago_Total
-        bool Abonado
+        int CreadoPor FK
+        int AnuladoPor FK
+        varchar Concepto
+        datetime FechaPago
+        decimal Importe
+        tinyint Anulado
     }
+
+    %% Relaciones
+    tipo_inmueble ||--o{ inmueble : "clasifica"
+    propietario ||--o{ inmueble : "posee"
+    inmueble ||--o{ imageninmueble : "tiene_galeria"
+    inmueble ||--o{ reserva : "recibe"
+    inquilino ||--o{ reserva : "realiza"
+    reserva ||--o{ pago : "genera"
+    
+    %% Auditoría (Relaciones con Usuario)
+    usuario ||--o{ reserva : "crea"
+    usuario ||--o{ reserva : "termina"
+    usuario ||--o{ pago : "registra"
+    usuario ||--o{ pago : "anula"
 ```
 
 </details>
@@ -129,29 +153,42 @@ erDiagram
 
 2. **Creá la base de datos**
 
-   Corré el script `script.sql` (ubicado en `/Database`) en MySQL Workbench, o desde la terminal:
+   Corré el script de inicialización utilizando MySQL Workbench, o directamente desde la terminal asegurándote de apuntar a la carpeta `Database`:
    ```bash
-   mysql -u root -p < Database/script.sql
+   mysql -u root -p < Database/inmobiliariagrupo9.sql
    ```
 
 3. **Configurá la cadena de conexión**
 
-   En `appsettings.json`, completá con tus datos de MySQL:
+   En el archivo `appsettings.json`, completá la conexión con tus credenciales locales de MySQL:
    ```json
    {
      "ConnectionStrings": {
        "DefaultConnection": "Server=localhost;Database=inmobiliariagrupo9;User=root;Password=TU_CLAVE;"
-     }
+     },
+     "Salt": "TU_SALT_DE_SEGURIDAD"
    }
    ```
 
-4. **Restauré las dependencias y corré el proyecto**
+4. **Restaurá las dependencias y corré el proyecto**
    ```bash
    dotnet restore
    dotnet run
    ```
 
-5. **Abrí el navegador** en la URL que indique la consola (por ejemplo `http://localhost:5173/`)
+5. **Abrí el navegador** en la URL que indique la consola (por defecto suele ser `http://localhost:5173/`)
+
+### 🔑 Credenciales de Prueba
+
+Una vez que el proyecto esté corriendo, podés ingresar al sistema utilizando las siguientes cuentas que ya vienen incluidas en el script de la base de datos:
+
+* **Rol Administrador (Acceso total):**
+  * **Usuario:** `Admin@mail.com`
+  * **Clave:** `1234`
+
+* **Rol Empleado (Acceso restringido):**
+  * **Usuario:** `Elliotalderson@mail.com`
+  * **Clave:** `1234`
 
 ---
 
@@ -159,22 +196,59 @@ erDiagram
 
 ```
 inmobiliaria-grupo-9/
-├── Controllers/        # Controladores MVC (Propietario, Inquilino, Home, etc.)
-├── Models/              # Entidades, interfaces de repositorio e implementaciones
-├── Views/               # Vistas Razor (.cshtml) organizadas por controlador
-├── wwwroot/             # Archivos estáticos (CSS, JS, imágenes)
-├── Database/            # Script SQL de creación de la base de datos
-├── appsettings.json     # Configuración (connection string, etc.)
-└── Program.cs           # Punto de entrada de la aplicación
+├── Controllers/           # Lógica de negocio (Propietarios, Inquilinos, Reservas, Pagos, Usuarios, Inmuebles)
+├── Models/                # Entidades del dominio, LoginView y Repositorios (Patrón Repository)
+├── Views/                 # Vistas Razor (.cshtml) estructuradas por controlador
+├── wwwroot/               # Archivos estáticos, hojas de estilo y directorio de subida (Uploads/Avatares, images/inmuebles)
+├── Database/              # Directorio con el script SQL (inmobiliariagrupo9.sql)
+├── appsettings.json       # Configuración global de la aplicación
+└── Program.cs             # Configuración de servicios, inyección de dependencias y middleware de autenticación
 ```
 
 ---
 
 ## ✅ Funcionalidades implementadas
 
-- [x] ABM completo de Propietarios
-- [x] ABM completo de Inquilinos
-- [ ] ABM de Inmuebles
-- [ ] Gestión de Reservas
-- [ ] Gestión de Pagos
-- [ ] Sistema de Usuarios y roles
+### Gestión de Seguridad y Usuarios:
+
+* Sistema de Login/Logout protegido mediante Cookie Authentication.
+
+* Encriptación de contraseñas de alta seguridad utilizando Pbkdf2 y Salt.
+
+* Control de Acceso Basado en Roles (RBAC):
+
+    -Administrador: Permisos totales, incluyendo la eliminación definitiva/anulación de registros y auditoría.
+
+    -Empleado: Gestión operativa diaria sin privilegios de eliminación, evitando pérdida de datos críticos.
+
+* Perfil de usuario con subida y actualización dinámica de Avatar.
+
+### Gestión de Inmuebles:
+
+* ABM completo de propiedades y ABM de Tipos de Inmueble (Casa, Depto, etc.).
+
+* Subida de imágenes: soporte para foto de portada y galería de imágenes múltiples.
+
+* Buscador avanzado con filtros combinados (precio, m², cantidad de ambientes, disponibilidad por fechas y estado).
+
+### Gestión de Reservas:
+
+* Creación de reservas con validación estricta en tiempo real para evitar superposición de fechas en un mismo inmueble.
+
+* Renovación de reservas existentes, enlazando automáticamente los nuevos períodos.
+
+* Finalización anticipada de contratos con lógica de negocio integrada: calcula automáticamente los días restantes y aplica multas (50% o 25%) según el tiempo transcurrido.
+
+### Gestión de Pagos:
+
+* Creación, edición y listado de comprobantes asociados a cada reserva.
+
+* Cálculo automático de "Seña" (porcentaje del valor total) al momento de asentar una nueva reserva.
+
+* Auditoría de operaciones: el sistema registra de forma invisible qué usuario del sistema cobró o anuló un pago.
+
+### Gestión de Propietarios e Inquilinos:
+
+* Alta, Baja, Modificación y listado paginado.
+
+* Buscador unificado por nombre, apellido, DNI, teléfono o email.
