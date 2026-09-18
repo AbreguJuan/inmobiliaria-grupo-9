@@ -58,10 +58,14 @@
                        asp-route-id="@item.IdInquilino">Detalles</a> |
 
                     <a asp-action="Edit"
-                       asp-route-id="@item.IdInquilino">Editar</a> |
-
-                    <a asp-action="Delete"
-                       asp-route-id="@item.IdInquilino">Eliminar</a>
+                       asp-route-id="@item.IdInquilino">Editar</a>
+                       
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <span> | </span>
+                        <a asp-action="Delete"
+                           asp-route-id="@item.IdInquilino">Eliminar</a>
+                    }
                 </td>
             </tr>
         }

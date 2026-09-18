@@ -54,31 +54,35 @@
 
                     <a asp-action="Edit"
                        asp-route-id="@item.IdReserva">Editar</a> |
-
-                    <a asp-action="Delete"
-                       asp-route-id="@item.IdReserva">Eliminar</a> |
-
+                       
                     <a asp-controller="Pago"
                        asp-action="PorReserva"
                        asp-route-idReserva="@item.IdReserva">Ver pagos</a> |
 
                     <a asp-controller="Pago"
                        asp-action="Create"
-                       asp-route-idReserva="@item.IdReserva">Agregar pago</a> |
+                       asp-route-idReserva="@item.IdReserva">Agregar pago</a>
+
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <span> | </span>
+                        <a asp-action="Delete"
+                           asp-route-id="@item.IdReserva">Eliminar</a>
+                    }
 
                     @if (!item.Finalizada)
                     {
+                        <span> | </span>
                         <a asp-action="Renovar"
                            asp-route-id="@item.IdReserva">Renovar</a>
 
                         <span> | </span>
-
                         <a asp-action="Finalizar"
                            asp-route-id="@item.IdReserva">Finalizar</a>
                     }
                     else
                     {
-                        <span>Finalizada</span>
+                        <span> | Finalizada</span>
                     }
                 </td>
             </tr>

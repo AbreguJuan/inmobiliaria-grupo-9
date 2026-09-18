@@ -30,39 +30,28 @@ namespace inmobiliaria_grupo_9.Controllers
             _logger = logger;
         }
 
-        // GET: Usuarios
         [Authorize(Policy = "Administrador")]
-public ActionResult Index(int pagina = 1)
-{
-    try
-    {
-        const int tamPagina = 5;
+        public ActionResult Index(int pagina = 1)
+        {
+            try
+            {
+                const int tamPagina = 5;
+                int totalRegistros = _repositorio.ObtenerCantidad();
+                int totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
+                var usuarios = _repositorio.ObtenerLista(pagina, tamPagina);
 
-        int totalRegistros = _repositorio.ObtenerCantidad();
+                ViewBag.PaginaActual = pagina;
+                ViewBag.TotalPaginas = totalPaginas;
 
-        int totalPaginas = (int)Math.Ceiling(
-            (double)totalRegistros / tamPagina
-        );
+                return View(usuarios);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener usuarios");
+                return View(new List<Usuario>());
+            }
+        }
 
-        var usuarios = _repositorio.ObtenerLista(
-            pagina,
-            tamPagina
-        );
-
-        ViewBag.PaginaActual = pagina;
-        ViewBag.TotalPaginas = totalPaginas;
-
-        return View(usuarios);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error al obtener usuarios");
-
-        return View(new List<Usuario>());
-    }
-}
-
-        // GET: Usuarios/Details/5
         [Authorize(Policy = "Administrador")]
         public ActionResult Details(int id)
         {
@@ -71,7 +60,6 @@ public ActionResult Index(int pagina = 1)
             return View(e);
         }
 
-        // GET: Usuarios/Create
         [Authorize(Policy = "Administrador")]
         public ActionResult Create()
         {
@@ -79,7 +67,6 @@ public ActionResult Index(int pagina = 1)
             return View();
         }
 
-        // POST: Usuarios/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "Administrador")]
@@ -93,7 +80,6 @@ public ActionResult Index(int pagina = 1)
                 
             try
             {
-                // Encriptar la clave
                 string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
                     password: u.Clave,
                     salt: System.Text.Encoding.ASCII.GetBytes(_configuration["Salt"] ?? "S@ltDefault123!"),
@@ -102,18 +88,13 @@ public ActionResult Index(int pagina = 1)
                     numBytesRequested: 256 / 8));
                 
                 u.Clave = hashed;
-                
                 int res = _repositorio.Alta(u);
                 
-                // Guardar el Avatar si se subió uno
                 if (u.AvatarFile != null && u.IdUsuario > 0)
                 {
                     string wwwPath = _environment.WebRootPath;
                     string path = Path.Combine(wwwPath, "Uploads", "Avatares");
-                    if (!Directory.Exists(path))
-                    {
-                        Directory.CreateDirectory(path);
-                    }
+                    if (!Directory.Exists(path)) Directory.CreateDirectory(path);
                     
                     string fileName = "avatar_" + u.IdUsuario + Path.GetExtension(u.AvatarFile.FileName);
                     string pathCompleto = Path.Combine(path, fileName);
@@ -136,7 +117,6 @@ public ActionResult Index(int pagina = 1)
             }
         }
 
-        // GET: Usuarios/Perfil
         [Authorize]
         public ActionResult Perfil()
         {
@@ -149,7 +129,6 @@ public ActionResult Index(int pagina = 1)
             return View(nameof(Edit), u);
         }
 
-        // GET: Usuarios/Edit/5
         [Authorize(Policy = "Administrador")]
         public ActionResult Edit(int id)
         {
@@ -161,28 +140,31 @@ public ActionResult Index(int pagina = 1)
             return View(u);
         }
 
-        // POST: Usuarios/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Edit(int id, Usuario u)
+        public ActionResult Edit(Usuario u) // <-- Se elimina el 'int id' de acá para evitar el 404
         {
             var vista = nameof(Edit);
             try
             {
                 var currentUserId = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
                 
+                // Usamos el ID que viene blindado adentro del formulario
+                var usuarioOriginal = _repositorio.ObtenerPorId(u.IdUsuario);
+                if (usuarioOriginal == null) return NotFound();
+
                 if (!User.IsInRole("Administrador"))
                 {
                     vista = nameof(Perfil);
-                    if (currentUserId != id) 
+                    
+                    // Seguridad: Si un empleado manipula el HTML para editar a otro usuario, lo pateamos al inicio
+                    if (currentUserId != u.IdUsuario) 
                         return RedirectToAction(nameof(Index), "Home");
+                    
+                    // Aseguramos que mantenga su rol original
+                    u.Rol = usuarioOriginal.Rol; 
                 }
-                
-                u.IdUsuario = id;
-
-                var usuarioOriginal = _repositorio.ObtenerPorId(id);
-                if (usuarioOriginal == null) return NotFound();
 
                 if (string.IsNullOrEmpty(u.Clave))
                 {
@@ -220,8 +202,10 @@ public ActionResult Index(int pagina = 1)
 
                 _repositorio.Modificacion(u);
 
-                if (currentUserId == id)
+                if (currentUserId == u.IdUsuario)
                 {
+                    // Si el usuario edita su propio perfil forzamos el deslogueo 
+                    // para que la cookie se actualice con la nueva foto.
                     return RedirectToAction("Logout");
                 }
 
@@ -236,7 +220,6 @@ public ActionResult Index(int pagina = 1)
             }
         }
 
-        // GET: Usuarios/Delete/5
         [Authorize(Policy = "Administrador")]
         public ActionResult Delete(int id)
         {
@@ -245,7 +228,6 @@ public ActionResult Index(int pagina = 1)
             return View(u);
         }
 
-        // POST: Usuarios/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "Administrador")]

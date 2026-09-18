@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using inmobiliaria_grupo_9.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace inmobiliaria_grupo_9.Controllers
 {
@@ -12,64 +13,47 @@ namespace inmobiliaria_grupo_9.Controllers
             _repositorio = repositorio;
         }
 
-       public IActionResult Index(
-    string busqueda,
-    string habilitadoFiltro,
-    int pagina = 1)
-{
-    try
-    {
-        const int tamPagina = 5;
-
-        bool? habilitado = habilitadoFiltro switch
+        public IActionResult Index(string busqueda, string habilitadoFiltro, int pagina = 1)
         {
-            "habilitados" => true,
-            "deshabilitados" => false,
-            _ => null
-        };
+            try
+            {
+                const int tamPagina = 5;
 
-        bool hayFiltros =
-            !string.IsNullOrWhiteSpace(busqueda) ||
-            habilitado.HasValue;
+                bool? habilitado = habilitadoFiltro switch
+                {
+                    "habilitados" => true,
+                    "deshabilitados" => false,
+                    _ => null
+                };
 
-        IList<TipoDeInmueble> tipos;
+                bool hayFiltros = !string.IsNullOrWhiteSpace(busqueda) || habilitado.HasValue;
+                IList<TipoDeInmueble> tipos;
 
-        if (hayFiltros)
-        {
-            tipos = _repositorio.Buscar(busqueda, habilitado);
-            ViewBag.TotalPaginas = 1;
+                if (hayFiltros)
+                {
+                    tipos = _repositorio.Buscar(busqueda, habilitado);
+                    ViewBag.TotalPaginas = 1;
+                }
+                else
+                {
+                    int totalRegistros = _repositorio.ObtenerCantidad();
+                    int totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
+                    tipos = _repositorio.ObtenerLista(pagina, tamPagina);
+                    ViewBag.TotalPaginas = totalPaginas;
+                }
+
+                ViewBag.PaginaActual = pagina;
+                ViewBag.Busqueda = busqueda;
+                ViewBag.HabilitadoFiltro = habilitadoFiltro;
+
+                return View(tipos);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener tipos de inmueble: {ex.Message}");
+                return View(new List<TipoDeInmueble>());
+            }
         }
-        else
-        {
-            int totalRegistros = _repositorio.ObtenerCantidad();
-
-            int totalPaginas = (int)Math.Ceiling(
-                (double)totalRegistros / tamPagina
-            );
-
-            tipos = _repositorio.ObtenerLista(
-                pagina,
-                tamPagina
-            );
-
-            ViewBag.TotalPaginas = totalPaginas;
-        }
-
-        ViewBag.PaginaActual = pagina;
-        ViewBag.Busqueda = busqueda;
-        ViewBag.HabilitadoFiltro = habilitadoFiltro;
-
-        return View(tipos);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(
-            $"Error al obtener tipos de inmueble: {ex.Message}"
-        );
-
-        return View(new List<TipoDeInmueble>());
-    }
-}
 
         public IActionResult Details(int id)
         {
@@ -131,6 +115,7 @@ namespace inmobiliaria_grupo_9.Controllers
             }
         }
 
+        [Authorize(Roles = "Administrador")]
         public IActionResult Delete(int id)
         {
             var tipo = _repositorio.ObtenerPorId(id);
@@ -142,6 +127,7 @@ namespace inmobiliaria_grupo_9.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public IActionResult DeleteConfirmed(int id)
         {
             try

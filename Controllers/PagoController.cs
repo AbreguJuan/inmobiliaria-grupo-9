@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using inmobiliaria_grupo_9.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace inmobiliaria_grupo_9.Controllers
 {
@@ -26,17 +27,13 @@ namespace inmobiliaria_grupo_9.Controllers
             {
                 const int tamPagina = 5;
 
-                int totalRegistros =
-                    repositorioPago.ObtenerCantidad();
+                int totalRegistros = repositorioPago.ObtenerCantidad();
 
                 int totalPaginas = (int)Math.Ceiling(
                     (double)totalRegistros / tamPagina
                 );
 
-                var lista = repositorioPago.ObtenerLista(
-                    pagina,
-                    tamPagina
-                );
+                var lista = repositorioPago.ObtenerLista(pagina, tamPagina);
 
                 ViewBag.PaginaActual = pagina;
                 ViewBag.TotalPaginas = totalPaginas;
@@ -45,10 +42,7 @@ namespace inmobiliaria_grupo_9.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(
-                    $"Error al obtener pagos: {ex.Message}"
-                );
-
+                Console.WriteLine($"Error al obtener pagos: {ex.Message}");
                 return View(new List<Pago>());
             }
         }
@@ -56,12 +50,7 @@ namespace inmobiliaria_grupo_9.Controllers
         public IActionResult Details(int id)
         {
             var pago = repositorioPago.ObtenerPorId(id);
-
-            if (pago == null)
-            {
-                return NotFound();
-            }
-
+            if (pago == null) return NotFound();
             return View(pago);
         }
 
@@ -72,7 +61,6 @@ namespace inmobiliaria_grupo_9.Controllers
                 IdReserva = idReserva,
                 FechaPago = DateTime.Now
             };
-
             return View(pago);
         }
 
@@ -82,7 +70,6 @@ namespace inmobiliaria_grupo_9.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Capturamos el usuario que registra el pago
                 var claimId = User.Claims
                     .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
                     ?.Value;
@@ -94,26 +81,18 @@ namespace inmobiliaria_grupo_9.Controllers
 
                 repositorioPago.Alta(pago);
 
-                // Si el pago fue agregado desde una reserva,
-                // volvemos al listado de pagos de esa reserva.
                 return RedirectToAction(
                     nameof(PorReserva),
                     new { idReserva = pago.IdReserva }
                 );
             }
-
             return View(pago);
         }
 
         public IActionResult Edit(int id)
         {
             var pago = repositorioPago.ObtenerPorId(id);
-
-            if (pago == null)
-            {
-                return NotFound();
-            }
-
+            if (pago == null) return NotFound();
             return View(pago);
         }
 
@@ -124,36 +103,29 @@ namespace inmobiliaria_grupo_9.Controllers
             if (ModelState.IsValid)
             {
                 repositorioPago.Modificacion(pago);
-
                 return RedirectToAction(nameof(Index));
             }
-
             return View(pago);
         }
 
+        [Authorize(Roles = "Administrador")]
         public IActionResult Delete(int id)
         {
             var pago = repositorioPago.ObtenerPorId(id);
-
-            if (pago == null)
-            {
-                return NotFound();
-            }
-
+            if (pago == null) return NotFound();
             return View(pago);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public IActionResult DeleteConfirmado(int id)
         {
-            // Capturamos el usuario que anula el pago
             var claimId = User.Claims
                 .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
                 ?.Value;
 
             int idUsuario = 0;
-
             if (claimId != null)
             {
                 idUsuario = int.Parse(claimId);
@@ -166,60 +138,28 @@ namespace inmobiliaria_grupo_9.Controllers
 
         public IActionResult PorReserva(int idReserva)
         {
-            var reserva =
-                repositorioReserva.ObtenerPorId(idReserva);
+            var reserva = repositorioReserva.ObtenerPorId(idReserva);
+            if (reserva == null) return NotFound();
 
-            if (reserva == null)
-            {
-                return NotFound();
-            }
+            var inmueble = repositorioInmueble.ObtenerPorId(reserva.IdInmueble);
+            if (inmueble == null) return NotFound();
 
-            var inmueble =
-                repositorioInmueble.ObtenerPorId(reserva.IdInmueble);
+            var pagos = repositorioPago.ObtenerPorReserva(idReserva);
 
-            if (inmueble == null)
-            {
-                return NotFound();
-            }
+            int cantidadDias = (reserva.Hasta.Date - reserva.Desde.Date).Days;
+            decimal totalReserva = cantidadDias * reserva.MontoDiario;
+            decimal importeSenia = totalReserva * inmueble.PorcentajeReserva / 100m;
 
-            var pagos =
-                repositorioPago.ObtenerPorReserva(idReserva);
-
-            // Calculamos el total original de la reserva
-            int cantidadDias =
-                (reserva.Hasta.Date - reserva.Desde.Date).Days;
-
-            decimal totalReserva =
-                cantidadDias * reserva.MontoDiario;
-
-            // Calculamos la seña correspondiente
-            decimal importeSenia =
-                totalReserva *
-                inmueble.PorcentajeReserva / 100m;
-
-            // Sumamos solamente pagos activos correspondientes
-            // al alquiler.
-            // La multa es un cargo adicional y no reduce
-            // el saldo del alquiler.
             decimal totalPagado = pagos
-                .Where(p =>
-                    !p.Anulado &&
-                    p.Concepto !=
-                    "Multa por finalización anticipada")
+                .Where(p => !p.Anulado && p.Concepto != "Multa por finalización anticipada")
                 .Sum(p => p.Importe);
 
-            decimal saldoPendiente =
-                totalReserva - totalPagado;
-
-            if (saldoPendiente < 0)
-            {
-                saldoPendiente = 0;
-            }
+            decimal saldoPendiente = totalReserva - totalPagado;
+            if (saldoPendiente < 0) saldoPendiente = 0;
 
             ViewBag.IdReserva = idReserva;
             ViewBag.TotalReserva = totalReserva;
-            ViewBag.PorcentajeReserva =
-                inmueble.PorcentajeReserva;
+            ViewBag.PorcentajeReserva = inmueble.PorcentajeReserva;
             ViewBag.ImporteSenia = importeSenia;
             ViewBag.TotalPagado = totalPagado;
             ViewBag.SaldoPendiente = saldoPendiente;

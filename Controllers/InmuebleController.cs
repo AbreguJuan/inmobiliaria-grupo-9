@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using inmobiliaria_grupo_9.Models;
 
 namespace inmobiliaria_grupo_9.Controllers
@@ -279,6 +280,7 @@ namespace inmobiliaria_grupo_9.Controllers
             }
         }
 
+        [Authorize(Roles = "Administrador")]
         public ActionResult Delete(int id)
         {
             var entidad = _repositorioInmueble.ObtenerPorId(id);
@@ -288,6 +290,7 @@ namespace inmobiliaria_grupo_9.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public ActionResult DeleteConfirmed(int id)
         {
             try

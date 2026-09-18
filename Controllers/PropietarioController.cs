@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using inmobiliaria_grupo_9.Models;
 using System.Collections.Generic;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace inmobiliaria_grupo_9.Controllers
 {
@@ -9,71 +10,55 @@ namespace inmobiliaria_grupo_9.Controllers
     {
         private readonly IRepositorioPropietario _repositorioPropietario;
 
-        // Inyección de dependencias
         public PropietarioController(IRepositorioPropietario repositorioPropietario)
         {
             _repositorioPropietario = repositorioPropietario;
         }
 
-        // GET: Propietario
-      public IActionResult Index(string busqueda, int pagina = 1)
-{
-    try
-    {
-        const int tamPagina = 5;
-        IList<Propietario> propietarios;
-
-        if (!string.IsNullOrWhiteSpace(busqueda))
+        public IActionResult Index(string busqueda, int pagina = 1)
         {
-            propietarios = _repositorioPropietario.Buscar(busqueda);
-            ViewBag.TotalPaginas = 1;
+            try
+            {
+                const int tamPagina = 5;
+                IList<Propietario> propietarios;
+
+                if (!string.IsNullOrWhiteSpace(busqueda))
+                {
+                    propietarios = _repositorioPropietario.Buscar(busqueda);
+                    ViewBag.TotalPaginas = 1;
+                }
+                else
+                {
+                    int totalRegistros = _repositorioPropietario.ObtenerCantidad();
+                    int totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamPagina);
+                    propietarios = _repositorioPropietario.ObtenerLista(pagina, tamPagina);
+                    ViewBag.TotalPaginas = totalPaginas;
+                }
+
+                ViewBag.PaginaActual = pagina;
+                ViewBag.Busqueda = busqueda;
+
+                return View(propietarios);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener propietarios: {ex.Message}");
+                return View(new List<Propietario>());
+            }
         }
-        else
-        {
-            int totalRegistros = _repositorioPropietario.ObtenerCantidad();
 
-            int totalPaginas = (int)Math.Ceiling(
-                (double)totalRegistros / tamPagina
-            );
-
-            propietarios = _repositorioPropietario.ObtenerLista(
-                pagina,
-                tamPagina
-            );
-
-            ViewBag.TotalPaginas = totalPaginas;
-        }
-
-        ViewBag.PaginaActual = pagina;
-        ViewBag.Busqueda = busqueda;
-
-        return View(propietarios);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error al obtener propietarios: {ex.Message}");
-        return View(new List<Propietario>());
-    }
-}
-
-        // GET: Propietario/Details/5
         public IActionResult Details(int id)
         {
             var propietario = _repositorioPropietario.ObtenerPorId(id);
-            if (propietario == null)
-            {
-                return NotFound();
-            }
+            if (propietario == null) return NotFound();
             return View(propietario);
         }
 
-        // GET: Propietario/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Propietario/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Propietario propietario)
@@ -94,18 +79,13 @@ namespace inmobiliaria_grupo_9.Controllers
             }
         }
 
-        // GET: Propietario/Edit/5
         public IActionResult Edit(int id)
         {
             var propietario = _repositorioPropietario.ObtenerPorId(id);
-            if (propietario == null)
-            {
-                return NotFound();
-            }
+            if (propietario == null) return NotFound();
             return View(propietario);
         }
 
-        // POST: Propietario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Propietario propietario)
@@ -126,20 +106,17 @@ namespace inmobiliaria_grupo_9.Controllers
             }
         }
 
-        // GET: Propietario/Delete/5
+        [Authorize(Roles = "Administrador")]
         public IActionResult Delete(int id)
         {
             var propietario = _repositorioPropietario.ObtenerPorId(id);
-            if (propietario == null)
-            {
-                return NotFound();
-            }
+            if (propietario == null) return NotFound();
             return View(propietario);
         }
 
-        // POST: Propietario/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public IActionResult DeleteConfirmed(int id)
         {
             try

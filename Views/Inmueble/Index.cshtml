@@ -194,12 +194,16 @@
                     <a asp-action="Edit"
                        asp-route-id="@item.IdInmueble">
                         Editar
-                    </a> |
-
-                    <a asp-action="Delete"
-                       asp-route-id="@item.IdInmueble">
-                        Eliminar
                     </a>
+                    
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <span> | </span>
+                        <a asp-action="Delete"
+                           asp-route-id="@item.IdInmueble">
+                            Eliminar
+                        </a>
+                    }
                 </td>
             </tr>
         }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using inmobiliaria_grupo_9.Models;
 using System.Collections.Generic;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace inmobiliaria_grupo_9.Controllers
 {
@@ -16,45 +17,45 @@ namespace inmobiliaria_grupo_9.Controllers
         }
 
         // GET: Inquilino
-       public IActionResult Index(string busqueda, int pagina = 1)
-{
-    try
-    {
-        const int tamPagina = 5;
-        IList<Inquilino> inquilinos;
-
-        if (!string.IsNullOrWhiteSpace(busqueda))
+        public IActionResult Index(string busqueda, int pagina = 1)
         {
-            inquilinos = _repositorioInquilino.Buscar(busqueda);
-            ViewBag.TotalPaginas = 1;
+            try
+            {
+                const int tamPagina = 5;
+                IList<Inquilino> inquilinos;
+
+                if (!string.IsNullOrWhiteSpace(busqueda))
+                {
+                    inquilinos = _repositorioInquilino.Buscar(busqueda);
+                    ViewBag.TotalPaginas = 1;
+                }
+                else
+                {
+                    int totalRegistros = _repositorioInquilino.ObtenerCantidad();
+
+                    int totalPaginas = (int)Math.Ceiling(
+                        (double)totalRegistros / tamPagina
+                    );
+
+                    inquilinos = _repositorioInquilino.ObtenerLista(
+                        pagina,
+                        tamPagina
+                    );
+
+                    ViewBag.TotalPaginas = totalPaginas;
+                }
+
+                ViewBag.PaginaActual = pagina;
+                ViewBag.Busqueda = busqueda;
+
+                return View(inquilinos);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener inquilinos: {ex.Message}");
+                return View(new List<Inquilino>());
+            }
         }
-        else
-        {
-            int totalRegistros = _repositorioInquilino.ObtenerCantidad();
-
-            int totalPaginas = (int)Math.Ceiling(
-                (double)totalRegistros / tamPagina
-            );
-
-            inquilinos = _repositorioInquilino.ObtenerLista(
-                pagina,
-                tamPagina
-            );
-
-            ViewBag.TotalPaginas = totalPaginas;
-        }
-
-        ViewBag.PaginaActual = pagina;
-        ViewBag.Busqueda = busqueda;
-
-        return View(inquilinos);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error al obtener inquilinos: {ex.Message}");
-        return View(new List<Inquilino>());
-    }
-}
 
         // GET: Inquilino/Details/5
         public IActionResult Details(int id)
@@ -135,6 +136,7 @@ namespace inmobiliaria_grupo_9.Controllers
         }
 
         // GET: Inquilino/Delete/5
+        [Authorize(Roles = "Administrador")]
         public IActionResult Delete(int id)
         {
             var inquilino = _repositorioInquilino.ObtenerPorId(id);
@@ -150,6 +152,7 @@ namespace inmobiliaria_grupo_9.Controllers
         // POST: Inquilino/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public IActionResult DeleteConfirmed(int id)
         {
             try
