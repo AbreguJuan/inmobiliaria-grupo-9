@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-using inmobiliaria_grupo_9.Models;
 using Microsoft.AspNetCore.Authorization;
+using inmobiliaria_grupo_9.Models;
+using System;
+using System.Collections.Generic;
 
 namespace inmobiliaria_grupo_9.Controllers
 {
+    [Authorize]
     public class TipoDeInmuebleController : Controller
     {
         private readonly IRepositorioTipoDeInmueble _repositorio;

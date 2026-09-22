@@ -1,12 +1,16 @@
 using System.Linq;
+using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 using inmobiliaria_grupo_9.Models;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+
 
 namespace inmobiliaria_grupo_9.Controllers
 {
+    [Authorize]
     public class ReservaController : Controller
     {
         private readonly IRepositorioReserva _repositorioReserva;

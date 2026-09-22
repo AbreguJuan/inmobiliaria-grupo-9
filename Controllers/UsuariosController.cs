@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace inmobiliaria_grupo_9.Controllers
 {
+    [Authorize]
     public class UsuariosController : Controller
     {
         private readonly ILogger<UsuariosController> _logger;

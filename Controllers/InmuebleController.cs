@@ -6,6 +6,7 @@ using inmobiliaria_grupo_9.Models;
 
 namespace inmobiliaria_grupo_9.Controllers
 {
+    [Authorize]
     public class InmuebleController : Controller
     {
         private readonly IRepositorioInmueble _repositorioInmueble;

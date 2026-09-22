@@ -1,10 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using inmobiliaria_grupo_9.Models;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 
 namespace inmobiliaria_grupo_9.Controllers
 {
+    [Authorize]
     public class PagoController : Controller
     {
         private readonly IRepositorioPago repositorioPago;
@@ -21,9 +26,9 @@ namespace inmobiliaria_grupo_9.Controllers
             this.repositorioInmueble = repositorioInmueble;
         }
 
-        public IActionResult Index(int pagina = 1, string concepto = null, decimal? importeMin = null, decimal? importeMax = null,
-            DateTime? fechaDesde = null, DateTime? fechaHasta = null, string anuladoFiltro = null, string inquilino = null)
-        {
+        public IActionResult Index(int pagina = 1, string? concepto = null, decimal? importeMin = null, decimal? importeMax = null,
+    DateTime? fechaDesde = null, DateTime? fechaHasta = null, string? anuladoFiltro = null, string? inquilino = null)
+{
             try
             {
                 bool? anulado = anuladoFiltro switch
@@ -123,16 +128,41 @@ namespace inmobiliaria_grupo_9.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(Pago pago)
+[ValidateAntiForgeryToken]
+public IActionResult Edit(int id, Pago pago)
+{
+    try
+    {
+        // 1. Buscamos el pago original en la base de datos
+        var pagoOriginal = repositorioPago.ObtenerPorId(id);
+        if (pagoOriginal == null)
         {
-            if (ModelState.IsValid)
-            {
-                repositorioPago.Modificacion(pago);
-                return RedirectToAction(nameof(Index));
-            }
-            return View(pago);
+            return NotFound();
         }
+
+        // 2. Solo actualizamos el concepto (ignoramos Importe y Fecha)
+        pagoOriginal.Concepto = pago.Concepto;
+
+        // 3. Limpiamos las validaciones de los campos que no nos importan
+        ModelState.Remove("Importe");
+        ModelState.Remove("FechaPago");
+        ModelState.Remove("IdReserva");
+
+        if (ModelState.IsValid)
+        {
+            repositorioPago.Modificacion(pagoOriginal);
+            return RedirectToAction(nameof(Index));
+        }
+        
+        // Si hay error, devolvemos el original para no perder los datos visuales
+        return View(pagoOriginal);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al editar pago: {ex.Message}");
+        return View(pago);
+    }
+}
 
         [Authorize(Roles = "Administrador")]
         public IActionResult Delete(int id)
