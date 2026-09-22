@@ -55,14 +55,17 @@ CREATE TABLE `inmueble` (
   `Provincia` varchar(45) NOT NULL,
   `Localidad` varchar(45) NOT NULL,
   `Direccion` varchar(45) NOT NULL,
-`PrecioXDia` double NOT NULL,
-`PorcentajeReserva` decimal(5,2) NOT NULL DEFAULT '30.00',
-`Metros_Cuadrados` int NOT NULL,
+  `PrecioXDia` double NOT NULL,
+  `PorcentajeReserva` decimal(5,2) NOT NULL DEFAULT '30.00',
+  `Metros_Cuadrados` int NOT NULL,
   `Nro_Ambientes` int NOT NULL,
   `Nro_Banios` int NOT NULL,
   `ID_Propietario` int NOT NULL,
   `Habilitado` tinyint NOT NULL,
   `FotoPortada` varchar(255) DEFAULT NULL,
+  `Cupo` int NOT NULL DEFAULT '1',
+  `Latitud` decimal(10,7) DEFAULT NULL,
+  `Longitud` decimal(10,7) DEFAULT NULL,
   PRIMARY KEY (`ID_Inmueble`),
   KEY `ID_Propietario_idx` (`ID_Propietario`),
   KEY `ID_TipoInmueble_idx` (`ID_TipoInmueble`),
@@ -77,12 +80,7 @@ CREATE TABLE `inmueble` (
 
 LOCK TABLES `inmueble` WRITE;
 /*!40000 ALTER TABLE `inmueble` DISABLE KEYS */;
-INSERT INTO `inmueble` VALUES
-(1,2,'Buenos Aires','Palermo','Av. Santa Fe 1234',5000,30.00,45,2,1,1,1,NULL),
-(2,3,'San Luis','Merlo','Av. Siempre Saa',10000,30.00,30,2,1,6,1,NULL),
-(3,1,'Santiago del Estero','Capital','Av. Juan Domingo Peron',6000,30.00,26,2,1,6,0,NULL),
-(4,1,'Tucuman','Tucuman','Cordoba 256',7000,30.00,30,3,1,3,1,NULL),
-(8,1,'La Pampa','Santa Rosa','Francia 123',7000,30.00,45,2,1,6,1,'/images/inmuebles/eb43844d-75f1-44a9-8fbf-ca0d3ef174cc.jpg');
+INSERT INTO `inmueble` VALUES (1,2,'Buenos Aires','Palermo','Av. Santa Fe 1234',5000,30.00,45,2,1,1,1,NULL,-1,-40.5000000,-50.5100000),(2,3,'San Luis','Merlo','Av. Siempre Saa',10000,30.00,30,2,1,6,1,NULL,2,80.0000000,-40.0000000),(3,1,'Santiago del Estero','Capital','Av. Juan Domingo Peron',6000,30.00,26,2,1,6,0,NULL,2,40.0000000,-40.0000000),(4,1,'Tucuman','Tucuman','Cordoba 256',7000,30.00,30,3,1,3,1,NULL,6,85.0000000,70.0000000),(8,1,'La Pampa','Santa Rosa','Francia 123',7000,30.00,45,2,1,6,0,'/images/inmuebles/eb43844d-75f1-44a9-8fbf-ca0d3ef174cc.jpg',4,-30.0000000,-50.0000000);
 /*!40000 ALTER TABLE `inmueble` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -137,7 +135,7 @@ CREATE TABLE `pago` (
   CONSTRAINT `FK_Pago_AnuladoPor` FOREIGN KEY (`AnuladoPor`) REFERENCES `usuario` (`ID_Usuario`),
   CONSTRAINT `FK_Pago_CreadoPor` FOREIGN KEY (`CreadoPor`) REFERENCES `usuario` (`ID_Usuario`),
   CONSTRAINT `FK_Pago_Reserva` FOREIGN KEY (`IdReserva`) REFERENCES `reserva` (`ID_Reserva`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -146,7 +144,7 @@ CREATE TABLE `pago` (
 
 LOCK TABLES `pago` WRITE;
 /*!40000 ALTER TABLE `pago` DISABLE KEYS */;
-INSERT INTO `pago` VALUES (1,1,'Seña de reserva','2026-09-14 21:52:54',1000.00,0,NULL,NULL),(2,8,'prueba','2026-09-17 15:52:59',100000.00,1,NULL,1),(3,6,'Multa por finalización anticipada','2026-09-17 16:51:28',6000.00,0,NULL,NULL);
+INSERT INTO `pago` VALUES (1,1,'Seña de reserva','2026-09-14 21:52:54',1000.00,0,NULL,NULL),(2,8,'prueba','2026-09-17 15:52:59',100000.00,1,NULL,1),(3,6,'Multa por finalización anticipada','2026-09-17 16:51:28',6000.00,0,NULL,NULL),(4,9,'Seña de reserva (30%)','2026-09-17 21:01:21',4200.00,0,1,NULL),(5,9,'Resto del pago','2026-09-17 21:02:12',9800.00,0,1,NULL),(6,10,'Seña de reserva (30%)','2026-09-17 21:03:14',8400.00,0,1,NULL),(7,10,'no resta el resto','2026-09-17 21:12:46',19600.00,1,1,1),(8,10,'Multa por finalización anticipada','2026-09-17 21:17:29',10500.00,0,1,NULL);
 /*!40000 ALTER TABLE `pago` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -206,7 +204,7 @@ CREATE TABLE `reserva` (
   CONSTRAINT `FK_Reserva_TerminadoPor` FOREIGN KEY (`TerminadoPor`) REFERENCES `usuario` (`ID_Usuario`),
   CONSTRAINT `ID_Inmueble` FOREIGN KEY (`ID_Inmueble`) REFERENCES `inmueble` (`ID_Inmueble`),
   CONSTRAINT `ID_Inquilino` FOREIGN KEY (`ID_Inquilino`) REFERENCES `inquilino` (`ID_Inquilino`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -215,7 +213,7 @@ CREATE TABLE `reserva` (
 
 LOCK TABLES `reserva` WRITE;
 /*!40000 ALTER TABLE `reserva` DISABLE KEYS */;
-INSERT INTO `reserva` VALUES (1,3,1,'2026-09-09','2026-09-20','2026-09-15 09:54:52',1,0.00,NULL,NULL),(2,2,1,'2026-09-21','2026-09-30',NULL,0,5000.00,NULL,NULL),(3,3,1,'2026-10-01','2026-10-15',NULL,0,5000.00,NULL,NULL),(4,1,1,'2026-10-16','2026-10-20',NULL,0,5000.00,NULL,NULL),(5,4,2,'2026-09-18','2026-09-21',NULL,0,10000.00,NULL,NULL),(6,2,3,'2026-09-18','2026-09-21','2026-09-19 00:00:00',1,6000.00,NULL,1),(7,2,4,'2026-09-16','2026-09-30',NULL,0,7000.00,NULL,NULL),(8,5,2,'2026-09-17','2026-09-18',NULL,0,10000.00,1,NULL);
+INSERT INTO `reserva` VALUES (1,3,1,'2026-09-09','2026-09-20','2026-09-15 09:54:52',1,0.00,NULL,NULL),(2,2,1,'2026-09-21','2026-09-30',NULL,0,5000.00,NULL,NULL),(3,3,1,'2026-10-01','2026-10-15',NULL,0,5000.00,NULL,NULL),(4,1,1,'2026-10-16','2026-10-20',NULL,0,5000.00,NULL,NULL),(5,4,2,'2026-09-18','2026-09-21',NULL,0,10000.00,NULL,NULL),(6,2,3,'2026-09-18','2026-09-21','2026-09-19 00:00:00',1,6000.00,NULL,1),(7,2,4,'2026-09-16','2026-09-30',NULL,0,7000.00,NULL,NULL),(8,5,2,'2026-09-17','2026-09-18',NULL,0,10000.00,1,NULL),(9,2,8,'2026-09-18','2026-09-20',NULL,0,7000.00,1,NULL),(10,2,8,'2026-09-20','2026-09-24','2026-09-21 00:00:00',1,7000.00,1,1);
 /*!40000 ALTER TABLE `reserva` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -283,4 +281,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-17 17:46:38
+-- Dump completed on 2026-09-22 15:33:57
