@@ -151,5 +151,16 @@ namespace inmobiliaria_grupo_9.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
+        [HttpGet]
+        public IActionResult BuscarJson(string term)
+        {
+            var resultados = _repositorio.Buscar(term)
+                .Where(t => t.Habilitado)
+                .Take(15)
+                .Select(t => new { id = t.IdTipoInmueble, texto = t.Nombre });
+
+            return Json(resultados);
+        }
     }
 }

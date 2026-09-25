@@ -38,3 +38,7 @@
     <button type="submit" class="btn btn-primary">Guardar cambios</button>
     <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
 </form>
+
+<script>
+    initAutocomplete('inputInquilino', 'hiddenInquilino', 'listaInquilino', '@Url.Action("BuscarJson", "Inquilino")', '@Model.Inquilino?.Nombre @Model.Inquilino?.Apellido');
+</script>

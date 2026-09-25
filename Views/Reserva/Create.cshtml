@@ -9,21 +9,31 @@
 <form asp-action="Create" method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    <div class="form-group">
-        <label asp-for="IdInquilino"></label>
-        <select asp-for="IdInquilino" asp-items="ViewBag.Inquilinos" class="form-control">
-            <option value="">-- Elegí un inquilino --</option>
-        </select>
+    <div class="form-group mb-3 position-relative">
+        <label>Inquilino</label>
+        <input type="text" id="inputInquilino" class="form-control" placeholder="Escribí nombre, apellido o DNI..."
+               autocomplete="off" />
+        <input type="hidden" asp-for="IdInquilino" id="hiddenInquilino" />
+        <ul id="listaInquilino" class="list-group position-absolute w-100" style="z-index:1000; display:none;"></ul>
         <span asp-validation-for="IdInquilino" class="text-danger"></span>
     </div>
 
-    <div class="form-group">
-        <label asp-for="IdInmueble"></label>
-        <select asp-for="IdInmueble" asp-items="ViewBag.Inmuebles" class="form-control">
-            <option value="">-- Elegí un inmueble --</option>
-        </select>
+    <div class="form-group mb-3 position-relative">
+        <label>Inmueble</label>
+        <input type="text" id="inputInmueble" class="form-control" placeholder="Escribí dirección o tipo..."
+               autocomplete="off" />
+        <input type="hidden" asp-for="IdInmueble" id="hiddenInmueble" />
+        <ul id="listaInmueble" class="list-group position-absolute w-100" style="z-index:1000; display:none;"></ul>
         <span asp-validation-for="IdInmueble" class="text-danger"></span>
     </div>
+
+    @section Scripts {
+        <script src="~/js/autocomplete.js"></script>
+        <script>
+                initAutocomplete('inputInquilino', 'hiddenInquilino', 'listaInquilino', '@Url.Action("BuscarJson", "Inquilino")');
+                initAutocomplete('inputInmueble', 'hiddenInmueble', 'listaInmueble', '@Url.Action("BuscarJson", "Inmueble")');
+        </script>
+    }
 
     <div class="form-group">
         <label asp-for="Desde"></label>

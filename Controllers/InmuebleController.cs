@@ -299,5 +299,17 @@ namespace inmobiliaria_grupo_9.Controllers
             ViewBag.Dias = dias;
             return View(lista);
         }
+
+        [HttpGet]
+        public IActionResult BuscarJson(string term)
+        {
+            if (string.IsNullOrWhiteSpace(term)) return Json(new object[0]);
+
+            var resultados = _repositorioInmueble.Buscar(term)
+                .Take(15)
+                .Select(i => new { id = i.IdInmueble, texto = i.ToString() });
+
+            return Json(resultados);
+        }
     }
 }

@@ -30,7 +30,7 @@ namespace inmobiliaria_grupo_9.Models
                     command.Parameters.AddWithValue("@desde", r.Desde);
                     command.Parameters.AddWithValue("@hasta", r.Hasta);
                     command.Parameters.AddWithValue("@montoDiario", r.MontoDiario);
-                    command.Parameters.AddWithValue("@creadoPor", r.CreadoPor ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@creadoPor", (object?)r.CreadoPor ?? DBNull.Value);
 
                     connection.Open();
 
@@ -206,38 +206,18 @@ namespace inmobiliaria_grupo_9.Models
 
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"
-                    SELECT
-                        r.ID_Reserva AS IdReserva,
-                        r.ID_Inquilino AS IdInquilino,
-                        r.ID_Inmueble AS IdInmueble,
-                        r.Desde,
-                        r.Hasta,
-                        r.MontoDiario,
-                        r.Finalizada,
-                        r.FechaFinalizacion,
-                        r.CreadoPor,
-                        r.TerminadoPor,
-
-                        i.Nombre AS NombreInquilino,
-                        i.Apellido AS ApellidoInquilino,
-
-                        inm.ID_TipoInmueble AS IdTipoInmuebleInmueble,
-                        t.Nombre AS TipoInmueble,
-                        inm.Direccion AS DireccionInmueble,
-                        
-                        uc.Nombre AS CreadorNombre,
-                        uc.Apellido AS CreadorApellido,
-                        ut.Nombre AS TerminadorNombre,
-                        ut.Apellido AS TerminadorApellido
-
+                string sql = @"SELECT r.ID_Reserva AS IdReserva, r.ID_Inquilino AS IdInquilino, r.ID_Inmueble AS IdInmueble,
+                        r.Desde, r.Hasta, r.MontoDiario, r.Finalizada, r.FechaFinalizacion, r.CreadoPor, r.TerminadoPor,
+                        i.Nombre AS NombreInquilino, i.Apellido AS ApellidoInquilino,
+                        inm.ID_TipoInmueble AS IdTipoInmuebleInmueble, t.Nombre AS TipoInmueble, inm.Direccion AS DireccionInmueble,
+                        uc.Nombre AS CreadorNombre, uc.Apellido AS CreadorApellido,
+                        ut.Nombre AS TerminadorNombre, ut.Apellido AS TerminadorApellido
                     FROM reserva r
                     INNER JOIN inquilino i ON r.ID_Inquilino = i.ID_Inquilino
                     INNER JOIN inmueble inm ON r.ID_Inmueble = inm.ID_Inmueble
                     INNER JOIN tipo_inmueble t ON inm.ID_TipoInmueble = t.ID_TipoInmueble
                     LEFT JOIN usuario uc ON r.CreadoPor = uc.ID_Usuario
                     LEFT JOIN usuario ut ON r.TerminadoPor = ut.ID_Usuario
-
                     WHERE r.ID_Reserva = @id";
 
                 using (var command = new MySqlCommand(sql, connection))
@@ -262,6 +242,8 @@ namespace inmobiliaria_grupo_9.Models
                             FechaFinalizacion = reader.IsDBNull(reader.GetOrdinal("FechaFinalizacion")) ? null : reader.GetDateTime("FechaFinalizacion"),
                             CreadoPor = reader.IsDBNull(reader.GetOrdinal("CreadoPor")) ? null : reader.GetInt32("CreadoPor"),
                             TerminadoPor = reader.IsDBNull(reader.GetOrdinal("TerminadoPor")) ? null : reader.GetInt32("TerminadoPor"),
+                            Creador = reader.IsDBNull(reader.GetOrdinal("CreadoPor")) ? null : new Usuario { Nombre = reader.GetString("CreadorNombre"), Apellido = reader.GetString("CreadorApellido") },
+                            Terminador = reader.IsDBNull(reader.GetOrdinal("TerminadoPor")) ? null : new Usuario { Nombre = reader.GetString("TerminadorNombre"), Apellido = reader.GetString("TerminadorApellido") },
 
                             Inquilino = new Inquilino
                             {
@@ -308,10 +290,10 @@ namespace inmobiliaria_grupo_9.Models
         }
 
         public bool ExisteSuperposicion(
-     int idInmueble,
-     DateTime desde,
-     DateTime hasta,
-     int idReservaExcluida = 0)
+            int idInmueble,
+            DateTime desde,
+            DateTime hasta,
+            int idReservaExcluida = 0)
         {
             bool existe = false;
 
@@ -350,30 +332,27 @@ namespace inmobiliaria_grupo_9.Models
             return existe;
         }
 
-        public int FinalizarReserva(int idReserva, DateTime fechaFinalizacion, int idUsuario)
+        public int FinalizarReserva(int idReserva, DateTime fechaFinalizacion, int? terminadoPor)
         {
             int res = -1;
-
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"UPDATE reserva
-                       SET Finalizada = 1,
-                           FechaFinalizacion = @fechaFinalizacion,
-                           TerminadoPor = @idUsuario
-                       WHERE ID_Reserva = @idReserva";
+                    SET Finalizada = 1,
+                        FechaFinalizacion = @fechaFinalizacion,
+                        TerminadoPor = @terminadoPor
+                    WHERE ID_Reserva = @idReserva";
 
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@fechaFinalizacion", fechaFinalizacion);
+                    command.Parameters.AddWithValue("@terminadoPor", (object?)terminadoPor ?? DBNull.Value);
                     command.Parameters.AddWithValue("@idReserva", idReserva);
-                    command.Parameters.AddWithValue("@idUsuario", idUsuario);
-
                     connection.Open();
                     res = command.ExecuteNonQuery();
                     connection.Close();
                 }
             }
-
             return res;
         }
 

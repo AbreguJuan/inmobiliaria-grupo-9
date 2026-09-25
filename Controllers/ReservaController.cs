@@ -113,6 +113,7 @@ namespace inmobiliaria_grupo_9.Controllers
                     if (claimId != null) reserva.CreadoPor = int.Parse(claimId);
 
                     reserva.MontoDiario = inmueble.PrecioXDia;
+                    reserva.CreadoPor = ObtenerIdUsuarioActual();
                     int idReserva = _repositorioReserva.Alta(reserva);
 
                     int cantidadDias = (reserva.Hasta.Date - reserva.Desde.Date).Days;
@@ -266,11 +267,11 @@ namespace inmobiliaria_grupo_9.Controllers
                     FechaPago = DateTime.Now,
                     Importe = multa,
                     Anulado = false,
-                    CreadoPor = idUsuario > 0 ? idUsuario : null
+                    CreadoPor = ObtenerIdUsuarioActual()
                 };
 
                 _repositorioPago.Alta(pago);
-                _repositorioReserva.FinalizarReserva(id, fechaFinalizacion, idUsuario);
+                _repositorioReserva.FinalizarReserva(id, fechaFinalizacion, ObtenerIdUsuarioActual());
 
                 return RedirectToAction(nameof(Index));
             }
@@ -288,87 +289,67 @@ namespace inmobiliaria_grupo_9.Controllers
             if (reserva.Finalizada) return RedirectToAction(nameof(Index));
             return View(reserva);
         }
+        //Metodo auxiliar que se una en create y finalizarConfirmado
+        private int? ObtenerIdUsuarioActual()
+        {
+            var claimId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            return claimId != null ? int.Parse(claimId) : null;
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult RenovarConfirmado(int id, DateTime nuevaFechaHasta)
         {
-            try
+            var reservaOriginal = _repositorioReserva.ObtenerPorId(id);
+
+            if (reservaOriginal == null)
             {
-                var reservaOriginal = _repositorioReserva.ObtenerPorId(id);
-                if (reservaOriginal == null) return NotFound();
-                if (reservaOriginal.Finalizada) return RedirectToAction(nameof(Index));
+                return NotFound();
+            }
 
-                DateTime nuevaFechaDesde = reservaOriginal.Hasta;
-
-                if (nuevaFechaHasta <= nuevaFechaDesde)
-                {
-                    ModelState.AddModelError("", "La nueva fecha de finalización debe ser posterior a la fecha de finalización de la reserva original.");
-                    return View("Renovar", reservaOriginal);
-                }
-
-                if (_repositorioReserva.ExisteSuperposicion(reservaOriginal.IdInmueble, nuevaFechaDesde, nuevaFechaHasta, reservaOriginal.IdReserva))
-                {
-                    ModelState.AddModelError("", "No se puede renovar porque el inmueble tiene otra reserva en ese período.");
-                    return View("Renovar", reservaOriginal);
-                }
-
-                var inmueble = _repositorioInmueble.ObtenerPorId(reservaOriginal.IdInmueble);
-                if (inmueble == null || !inmueble.Habilitado)
-                {
-                    ModelState.AddModelError("", "El inmueble no se encuentra disponible para renovar.");
-                    return View("Renovar", reservaOriginal);
-                }
-
-                var claimId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-                int? idUsuario = null;
-                if (claimId != null) idUsuario = int.Parse(claimId);
-
-                var nuevaReserva = new Reserva
-                {
-                    IdInquilino = reservaOriginal.IdInquilino,
-                    IdInmueble = reservaOriginal.IdInmueble,
-                    Desde = nuevaFechaDesde,
-                    Hasta = nuevaFechaHasta,
-                    MontoDiario = inmueble.PrecioXDia,
-                    Finalizada = false,
-                    FechaFinalizacion = null,
-                    CreadoPor = idUsuario
-                };
-
-                int nuevaReservaId = _repositorioReserva.Alta(nuevaReserva);
-
-                if (nuevaReservaId <= 0)
-                {
-                    ModelState.AddModelError("", "No se pudo generar la nueva reserva.");
-                    return View("Renovar", reservaOriginal);
-                }
-
-                int cantidadDias = (nuevaReserva.Hasta.Date - nuevaReserva.Desde.Date).Days;
-                decimal totalReserva = cantidadDias * nuevaReserva.MontoDiario;
-                decimal importeSenia = totalReserva * inmueble.PorcentajeReserva / 100m;
-
-                var pagoSenia = new Pago
-                {
-                    IdReserva = nuevaReservaId,
-                    Concepto = $"Seña de reserva ({inmueble.PorcentajeReserva:0.##}%)",
-                    FechaPago = DateTime.Now,
-                    Importe = importeSenia,
-                    Anulado = false,
-                    CreadoPor = idUsuario
-                };
-
-                _repositorioPago.Alta(pagoSenia);
+            if (reservaOriginal.Finalizada)
+            {
                 return RedirectToAction(nameof(Index));
             }
-            catch (Exception ex)
+
+            if (nuevaFechaHasta <= reservaOriginal.Hasta)
             {
-                Console.WriteLine($"Error al renovar reserva: {ex.Message}");
-                var reserva = _repositorioReserva.ObtenerPorId(id);
-                if (reserva == null) return NotFound();
-                ModelState.AddModelError("", "Ocurrió un error al renovar la reserva.");
-                return View("Renovar", reserva);
+                ModelState.AddModelError("", "La nueva fecha de finalización debe ser posterior a la fecha actual.");
+                return View("Renovar", reservaOriginal);
             }
+
+            if (_repositorioReserva.ExisteSuperposicion(
+                reservaOriginal.IdInmueble,
+                reservaOriginal.Hasta,
+                nuevaFechaHasta,
+                reservaOriginal.IdReserva))
+            {
+                ModelState.AddModelError("", "No se puede renovar porque el inmueble tiene otra reserva en ese período.");
+                return View("Renovar", reservaOriginal);
+            }
+
+            var inmueble = _repositorioInmueble.ObtenerPorId(reservaOriginal.IdInmueble);
+            if (inmueble == null)
+            {
+                return NotFound();
+            }
+
+            // No modificamos la reserva original: creamos una nueva,
+            // con el mismo inquilino e inmueble, continuando desde donde terminaba la anterior.
+
+            var nuevaReserva = new Reserva
+            {
+                IdInquilino = reservaOriginal.IdInquilino,
+                IdInmueble = reservaOriginal.IdInmueble,
+                Desde = reservaOriginal.Hasta,
+                Hasta = nuevaFechaHasta,
+                MontoDiario = Convert.ToDecimal(inmueble.PrecioXDia), // tarifa vigente al momento de renovar
+                CreadoPor = ObtenerIdUsuarioActual()
+            };
+
+            _repositorioReserva.Alta(nuevaReserva);
+
+            return RedirectToAction(nameof(Index));
         }
 
         public IActionResult MasReservados(int dias = 365, int top = 10)

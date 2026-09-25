@@ -42,7 +42,7 @@ namespace inmobiliaria_grupo_9.Models
         // --- Propiedades de navegación ---
         public Inquilino? Inquilino { get; set; }
         public Inmueble? Inmueble { get; set; }
-        
+
         // Navegación para Auditoría
         public Usuario? Creador { get; set; }
         public Usuario? Terminador { get; set; }
