@@ -27,14 +27,6 @@
         <span asp-validation-for="IdInmueble" class="text-danger"></span>
     </div>
 
-    @section Scripts {
-        <script src="~/js/autocomplete.js"></script>
-        <script>
-                initAutocomplete('inputInquilino', 'hiddenInquilino', 'listaInquilino', '@Url.Action("BuscarJson", "Inquilino")');
-                initAutocomplete('inputInmueble', 'hiddenInmueble', 'listaInmueble', '@Url.Action("BuscarJson", "Inmueble")');
-        </script>
-    }
-
     <div class="form-group">
         <label asp-for="Desde"></label>
         <input asp-for="Desde" class="form-control" />
@@ -51,3 +43,11 @@
     <button type="submit" class="btn btn-primary">Guardar</button>
     <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
 </form>
+
+    @section Scripts {
+        <script src="~/js/autocomplete.js"></script>
+        <script>
+                initAutocomplete('inputInquilino', 'hiddenInquilino', 'listaInquilino', '@Url.Action("BuscarJson", "Inquilino")');
+                initAutocomplete('inputInmueble', 'hiddenInmueble', 'listaInmueble', '@Url.Action("BuscarJson", "Inmueble")');
+        </script>
+    }

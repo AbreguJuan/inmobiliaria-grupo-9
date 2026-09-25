@@ -131,7 +131,7 @@ namespace inmobiliaria_grupo_9.Models
                     INNER JOIN inmueble inm ON r.ID_Inmueble = inm.ID_Inmueble
                     INNER JOIN tipo_inmueble t ON inm.ID_TipoInmueble = t.ID_TipoInmueble
 
-                    ORDER BY r.ID_Reserva
+                    ORDER BY r.ID_Reserva DESC
 
                     LIMIT {tamPagina}
                     OFFSET {(paginaNro - 1) * tamPagina}";
