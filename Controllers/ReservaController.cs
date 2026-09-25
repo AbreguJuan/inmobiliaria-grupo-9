@@ -40,38 +40,84 @@ namespace inmobiliaria_grupo_9.Controllers
             ViewBag.Inmuebles = new SelectList(inmuebles.Select(i => new { i.IdInmueble, Texto = i.ToString() }), "IdInmueble", "Texto", idInmueble);
         }
 
-        public IActionResult Index(string inquilino, string inmueble, DateTime? fechaDesde, DateTime? fechaHasta, string finalizadaFiltro)
+        public IActionResult Index(
+    string inquilino,
+    string inmueble,
+    DateTime? fechaDesde,
+    DateTime? fechaHasta,
+    string finalizadaFiltro,
+    int pagina = 1)
+{
+    try
+    {
+        const int tamPagina = 5;
+
+        if (pagina < 1)
+            pagina = 1;
+
+        bool? finalizada = finalizadaFiltro switch
         {
-            try
-            {
-                bool? finalizada = finalizadaFiltro switch
-                {
-                    "finalizadas" => true,
-                    "vigentes" => false,
-                    _ => null
-                };
+            "finalizadas" => true,
+            "vigentes" => false,
+            _ => null
+        };
 
-                bool hayFiltros = !string.IsNullOrWhiteSpace(inquilino) || !string.IsNullOrWhiteSpace(inmueble)
-                    || fechaDesde.HasValue || fechaHasta.HasValue || finalizada.HasValue;
+        bool hayFiltros =
+            !string.IsNullOrWhiteSpace(inquilino) ||
+            !string.IsNullOrWhiteSpace(inmueble) ||
+            fechaDesde.HasValue ||
+            fechaHasta.HasValue ||
+            finalizada.HasValue;
 
-                var reservas = hayFiltros
-                    ? _repositorioReserva.Buscar(inquilino, inmueble, fechaDesde, fechaHasta, finalizada)
-                    : _repositorioReserva.ObtenerLista();
+        List<Reserva> reservas;
+        int totalPaginas;
 
-                ViewBag.Inquilino = inquilino;
-                ViewBag.Inmueble = inmueble;
-                ViewBag.FechaDesde = fechaDesde;
-                ViewBag.FechaHasta = fechaHasta;
-                ViewBag.FinalizadaFiltro = finalizadaFiltro;
+        if (hayFiltros)
+        {
+            reservas = _repositorioReserva.Buscar(
+                inquilino,
+                inmueble,
+                fechaDesde,
+                fechaHasta,
+                finalizada
+            ).ToList();
 
-                return View(reservas);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al obtener reservas: {ex.Message}");
-                return View(new List<Reserva>());
-            }
+            // Por ahora mantenemos la búsqueda actual.
+            totalPaginas = 1;
         }
+        else
+        {
+            int totalRegistros = _repositorioReserva.ObtenerCantidad();
+
+            totalPaginas = (int)Math.Ceiling(
+                totalRegistros / (double)tamPagina
+            );
+
+            if (totalPaginas > 0 && pagina > totalPaginas)
+                pagina = totalPaginas;
+
+            reservas = _repositorioReserva
+                .ObtenerLista(pagina, tamPagina)
+                .ToList();
+        }
+
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
+
+        ViewBag.Inquilino = inquilino;
+        ViewBag.Inmueble = inmueble;
+        ViewBag.FechaDesde = fechaDesde;
+        ViewBag.FechaHasta = fechaHasta;
+        ViewBag.FinalizadaFiltro = finalizadaFiltro;
+
+        return View(reservas);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error al obtener reservas: {ex.Message}");
+        return View(new List<Reserva>());
+    }
+}
 
         public IActionResult Details(int id)
         {
@@ -347,9 +393,29 @@ namespace inmobiliaria_grupo_9.Controllers
                 CreadoPor = ObtenerIdUsuarioActual()
             };
 
-            _repositorioReserva.Alta(nuevaReserva);
+           int idNuevaReserva = _repositorioReserva.Alta(nuevaReserva);
 
-            return RedirectToAction(nameof(Index));
+// Calculamos únicamente el período de la renovación
+int cantidadDias = (nuevaReserva.Hasta.Date - nuevaReserva.Desde.Date).Days;
+decimal totalRenovacion = cantidadDias * nuevaReserva.MontoDiario;
+
+// Calculamos la seña según el porcentaje configurado en el inmueble
+decimal importeSenia = totalRenovacion * inmueble.PorcentajeReserva / 100m;
+
+// Creamos el pago de la seña para LA NUEVA reserva
+var pagoSenia = new Pago
+{
+    IdReserva = idNuevaReserva,
+    Concepto = $"Seña de reserva ({inmueble.PorcentajeReserva:0.##}%)",
+    FechaPago = DateTime.Now,
+    Importe = importeSenia,
+    Anulado = false,
+    CreadoPor = ObtenerIdUsuarioActual()
+};
+
+_repositorioPago.Alta(pagoSenia);
+
+return RedirectToAction(nameof(Index));
         }
 
         public IActionResult MasReservados(int dias = 365, int top = 10)
